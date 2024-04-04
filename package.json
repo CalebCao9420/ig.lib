@@ -1,0 +1,18 @@
+{
+  "name": "com.ig.lib",
+  "version": "0.1.0",
+  "displayName": "ig.lib",
+  "description": "issue game lib.",
+  "keywords": [
+    "ig",
+    "ig lib"
+  ],
+  "documentationUrl": "",
+  "changelogUrl": "",
+  "author": {
+    "name": "issuegame caleb",
+    "url": ""
+  },
+  "type": "library",
+  "dependencies": {}
+}
