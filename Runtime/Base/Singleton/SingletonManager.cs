@@ -72,5 +72,7 @@ namespace IG{
 
             s_objectList.Clear();
         }
+
+        public static bool IsValid(){ return s_singletonRoot != null; }
     }
 }

@@ -28,9 +28,9 @@ namespace IG{
         public abstract void OnDispose();
 
         /// <summary>
-        /// Gets a value indicating is N ull.
+        /// Gets a value indicating is Valid.
         /// </summary>
         /// <value><c>true</c> if is N ull; otherwise, <c>false</c>.</value>
-        public static bool IsNUll{ get{ return s_instance == null; } }
+        public static bool IsValid{ get{ return s_instance != null; } }
     }
 }

@@ -57,14 +57,16 @@ namespace IG{
         /// Raises the destroy event.
         /// </summary>
         public virtual void OnDestroy(){
-            SingletonManager.Remove(this);
+            if (SingletonManager.IsValid()){
+                SingletonManager.Remove(this);
+            }
         }
 
         /// <summary>
-        /// Gets a value indicating is N ull.
+        /// Gets a value indicating is valid.
         /// </summary>
         /// <value><c>true</c> if is N ull; otherwise, <c>false</c>.</value>
-        public static bool IsNUll{ get{ return s_instance == null; } }
+        public static bool IsValid{ get{ return s_instance != null; } }
 
         public void Dispose(){
             OnDispose();
