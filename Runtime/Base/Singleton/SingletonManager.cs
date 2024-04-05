@@ -5,14 +5,25 @@ namespace IG{
     /// Singleton manager.
     /// </summary>
     public static class SingletonManager{
-        private static readonly UnityEngine.GameObject s_singletonRoot;
+        /// <summary>
+        /// Must lazy
+        /// </summary>
+        private static UnityEngine.GameObject s_singletonRoot{
+            get{
+                lock (s_lock){
+                    if (s_singletonRoot_static == null){
+                        s_singletonRoot_static = new UnityEngine.GameObject("SingletonMono");
+                    }
+
+                    return s_singletonRoot_static;
+                }
+            }
+        }
+
+        private static          UnityEngine.GameObject s_singletonRoot_static;
         private static readonly object                 s_lock       = new object();
         private static          List<ISingleton>       s_objectList = null;
-
-        static SingletonManager(){
-            s_objectList    = new();
-            s_singletonRoot = new UnityEngine.GameObject("SingleMonoBehaviour");
-        }
+        static SingletonManager(){ s_objectList = new(); }
 
         /// <summary>
         /// Adds the single class
@@ -55,6 +66,7 @@ namespace IG{
 
         /// <summary>
         /// Removes the single class.
+        /// If you want remove singleton or singletonMono ,Must use this function , can't directory remove singleton self
         /// </summary>
         /// <param name="singleton">Single class.</param>
         public static void Remove(ISingleton singleton){
@@ -67,12 +79,8 @@ namespace IG{
         /// </summary>
         public static void DestroyAll(){
             while (s_objectList.Count > 0){
-                s_objectList[0].Dispose();
+                Remove(s_objectList[0]);
             }
-
-            s_objectList.Clear();
         }
-
-        public static bool IsValid(){ return s_singletonRoot != null; }
     }
 }

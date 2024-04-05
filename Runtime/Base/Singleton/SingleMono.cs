@@ -57,9 +57,7 @@ namespace IG{
         /// Raises the destroy event.
         /// </summary>
         public virtual void OnDestroy(){
-            if (SingletonManager.IsValid()){
-                SingletonManager.Remove(this);
-            }
+            SingletonManager.Remove(this);
         }
 
         /// <summary>
@@ -71,9 +69,6 @@ namespace IG{
         public void Dispose(){
             OnDispose();
             s_instance = null;
-            if (this == null || this.gameObject == null){
-                return;
-            }
         }
 
         public abstract void OnDispose();
