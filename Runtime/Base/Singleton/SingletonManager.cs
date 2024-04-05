@@ -66,7 +66,8 @@ namespace IG{
 
         /// <summary>
         /// Removes the single class.
-        /// If you want remove singleton or singletonMono ,Must use this function , can't directory remove singleton self
+        /// If you want remove singleton ,Must use this function , can't directory remove singleton self
+        /// If you want remove singletonMono ,Must direct destroy singletonMono GameObject
         /// </summary>
         /// <param name="singleton">Single class.</param>
         public static void Remove(ISingleton singleton){
