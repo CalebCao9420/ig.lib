@@ -40,7 +40,7 @@ namespace IG{
         public static T Instance{
             get{
                 if (s_instance == null){
-                    s_instance = SingletonManager.Create<T>(nameof(T));
+                    s_instance = SingletonManager.Create<T>(typeof(T).ToString());
                 }
 
                 return s_instance;
