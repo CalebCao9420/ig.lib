@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace IG{
+    using IG.Attribute;
 
     public class GameLooper : SingletonMono<GameLooper>, IGameLoop{
         /// <summary>
@@ -21,7 +23,7 @@ namespace IG{
         /// </summary>
         public static readonly float FixedIntervalTime = 0.5f;
 
-        public static float GameSpeed{ get; private set; }
+        public static float GameSpeed   { get; private set; }
         public static float PreGameSpeed{ get; private set; }
 
         /// <summary>
@@ -49,16 +51,21 @@ namespace IG{
         /// </summary>
         public float IntervalCalTime{ get; private set; }
 
-        public GameEvent OnInit{ get; private set; }
-        public GameEvent OnFrameTick{ get; private set; }
-        public GameEvent OnFixedIntervalTick{ get; private set; }
-        public GameEvent OnTick{ get; private set; }
-        public GameEvent OnFixedTick{ get; private set; }
-        public GameEvent OnLateTick{ get; private set; }
-        public GameEvent OnAsyncTick{ get; private set; }
-        public Dictionary<string, IGBC> Ctrls = new Dictionary<string, IGBC>();
+        public  GameEvent                OnInit             { get; private set; }
+        public  GameEvent                OnFrameTick        { get; private set; }
+        public  GameEvent                OnFixedIntervalTick{ get; private set; }
+        public  GameEvent                OnTick             { get; private set; }
+        public  GameEvent                OnFixedTick        { get; private set; }
+        public  GameEvent                OnLateTick         { get; private set; }
+        public  GameEvent                OnAsyncTick        { get; private set; }
+        public  Dictionary<string, IGBC> Ctrls         = new Dictionary<string, IGBC>();
+        private bool                     _initComplete = false;
 
         private void OnEnable(){
+            if (!_initComplete){
+                return;
+            }
+
             StopAllCoroutines();
             StartCoroutine(this.AsyncUpdate());
         }
@@ -67,7 +74,7 @@ namespace IG{
 
         public static void SetGameSpeed(float gameSped){
             PreGameSpeed = GameSpeed;
-            GameSpeed = gameSped;
+            GameSpeed    = gameSped;
             Instance.RecalculateDeltaTime(GameFrame);
         }
 
@@ -82,21 +89,23 @@ namespace IG{
                 return;
             }
 
-            // this.OnInit += igbc.OnInit;
-            // this.OnFrameUpdate += igbc.OnFrameUpdate;
-            // this.OnUpdate += igbc.OnUpdate;
-            // this.OnFixedUpdate += igbc.OnFixedUpdate;
-            // this.OnLateUpdate += igbc.OnLateUpdate;
-            this.RegisterEvent(GameEventType.Init, igbc.Init);
-            this.RegisterEvent(GameEventType.Update, igbc.Tick);
-            this.RegisterEvent(GameEventType.FixedIntervalUpdate, igbc.FixedIntervalTick);
-            this.RegisterEvent(GameEventType.FixedUpdate, igbc.FixedTick);
-            this.RegisterEvent(GameEventType.FrameUpdate, igbc.FrameTick);
-            this.RegisterEvent(GameEventType.LateUpdate, igbc.LateTick);
-            this.RegisterEvent(GameEventType.AsyncUpdate, igbc.AsyncTick);
+            var                type      = igbc.GetType();
+            IGBCEventAttribute attribute = type.GetCustomAttribute<IGBCEventAttribute>();
+            if ((attribute.EventType & GameEventType.Init) != 0){ this.RegisterEvent(GameEventType.Init, igbc.Init); }
+
+            if ((attribute.EventType & GameEventType.Update) != 0){ this.RegisterEvent(GameEventType.Update, igbc.Tick); }
+
+            if ((attribute.EventType & GameEventType.FixedIntervalUpdate) != 0){ this.RegisterEvent(GameEventType.FixedIntervalUpdate, igbc.FixedIntervalTick); }
+
+            if ((attribute.EventType & GameEventType.FixedUpdate) != 0){ this.RegisterEvent(GameEventType.FixedUpdate, igbc.FixedTick); }
+
+            if ((attribute.EventType & GameEventType.FrameUpdate) != 0){ this.RegisterEvent(GameEventType.FrameUpdate, igbc.FrameTick); }
+
+            if ((attribute.EventType & GameEventType.LateUpdate) != 0){ this.RegisterEvent(GameEventType.LateUpdate, igbc.LateTick); }
+
+            if ((attribute.EventType & GameEventType.AsyncUpdate) != 0){ this.RegisterEvent(GameEventType.AsyncUpdate, igbc.AsyncTick); }
+
             this.Ctrls.Add(guid, igbc);
-            // //TODO:每次注册事件，都会响应所有Init是不正确的
-            // this.OnInit?.Invoke(DeltaTime);
             igbc.Init(DeltaTime);
         }
 
@@ -110,20 +119,29 @@ namespace IG{
                 return;
             }
 
-            var igbc = this.Ctrls[guid];
-            this.OnInit -= igbc.Init;
-            this.OnFrameTick -= this.OnFrameTick;
-            this.OnTick -= igbc.Tick;
-            this.OnFixedTick -= igbc.FixedTick;
-            this.OnFixedIntervalTick -= igbc.FixedIntervalTick;
-            this.OnLateTick -= igbc.LateTick;
-            this.OnAsyncTick -= igbc.AsyncTick;
+            var                igbc      = this.Ctrls[guid];
+            var                type      = igbc.GetType();
+            IGBCEventAttribute attribute = type.GetCustomAttribute<IGBCEventAttribute>();
+            if ((attribute.EventType & GameEventType.Init) != 0){ this.DeregisterEvent(GameEventType.Init, igbc.Init); }
+
+            if ((attribute.EventType & GameEventType.Update) != 0){ this.DeregisterEvent(GameEventType.Update, igbc.Tick); }
+
+            if ((attribute.EventType & GameEventType.FixedIntervalUpdate) != 0){ this.DeregisterEvent(GameEventType.FixedIntervalUpdate, igbc.FixedIntervalTick); }
+
+            if ((attribute.EventType & GameEventType.FixedUpdate) != 0){ this.DeregisterEvent(GameEventType.FixedUpdate, igbc.FixedTick); }
+
+            if ((attribute.EventType & GameEventType.FrameUpdate) != 0){ this.DeregisterEvent(GameEventType.FrameUpdate, igbc.FrameTick); }
+
+            if ((attribute.EventType & GameEventType.LateUpdate) != 0){ this.DeregisterEvent(GameEventType.LateUpdate, igbc.LateTick); }
+
+            if ((attribute.EventType & GameEventType.AsyncUpdate) != 0){ this.DeregisterEvent(GameEventType.AsyncUpdate, igbc.AsyncTick); }
+
             this.Ctrls.Remove(guid);
         }
 
         /// <summary>
         /// Single add event
-        /// TODO:事件也要容器单独管理才行
+        /// TODO:事件也可以单独容器管理,方便debug
         /// </summary>
         /// <param name="type"></param>
         /// <param name="event"></param>
@@ -159,9 +177,6 @@ namespace IG{
                     this.OnAsyncTick += @event;
                     break;
             }
-
-            // //TODO:每次注册事件，都会响应所有Init是不正确的。
-            // this.OnInit?.Invoke(DeltaTime);
         }
 
         /// <summary>
@@ -204,6 +219,7 @@ namespace IG{
             // GameUtils.SetTargetFrame(GameFrame);//TODO:
             Application.targetFrameRate = (GameFrame);
             this.RecalculateDeltaTime(GameFrame);
+            _initComplete = true;
         }
 
         private void Update(){ this.OnTick?.Invoke(DeltaTime); }
@@ -247,7 +263,14 @@ namespace IG{
             }
         }
 
-        public override void OnDispose(){ }
+        public override void OnDispose(){
+            GameFrame = 0;
+            GameSpeed = 0;
+            // GameUtils.SetTargetFrame(GameFrame);//TODO:
+            Application.targetFrameRate = (GameFrame);
+            this.RecalculateDeltaTime(GameFrame);
+            _initComplete = false;
+        }
 
         /// <summary>
         /// 游戏暂停
@@ -257,7 +280,7 @@ namespace IG{
             // GameUtils.CleanMemory(); //TODO:
             // GameUtils.SetTargetFrame(0);//TODO:
             PreGameSpeed = GameSpeed;
-            GameSpeed = 0.0f;
+            GameSpeed    = 0.0f;
         }
 
         /// <summary>
@@ -265,7 +288,7 @@ namespace IG{
         /// 当前仅用于后台中
         /// </summary>
         public void GameContinue(){
-            GameSpeed = PreGameSpeed <= 0 ? 1 : PreGameSpeed;
+            GameSpeed    = PreGameSpeed <= 0 ? 1 : PreGameSpeed;
             PreGameSpeed = 0.0f;
             RecalculateDeltaTime(GameFrame);
             // GameUtils.SetTargetFrame(GameFrame);//TODO:
