@@ -6,7 +6,7 @@ using UnityEngine;
 using Object = System.Object;
 
 namespace IG.Runtime.Utils{
-    using IG.Runtime.Extension;
+    using IG.Runtime.Extensions;
 
     public static class StringUtils{
     #region Const

@@ -2,7 +2,7 @@
 using UnityEngine;
 
 namespace IG.Runtime.Utils{
-    using IG.Runtime.Extension;
+    using IG.Runtime.Extensions;
 
     public static class MathUtils{
         /// <summary>

@@ -4,7 +4,6 @@ using UnityEngine;
 using Random = System.Random;
 
 namespace IG.Runtime.Utils{
-    using IG.Runtime.Extension;
 
     public static class RandomUtils{
         private static int    _seed;
@@ -25,8 +24,8 @@ namespace IG.Runtime.Utils{
         /// </summary>
         /// <param name="radius"></param>
         /// <returns></returns>
-        public static UnityEngine.Vector2 RandomCircle(float radiusMin, float radiusMax){
-            UnityEngine.Vector2 rel = UnityEngine.Vector2.zero;
+        public static Vector2 RandomCircle(float radiusMin, float radiusMax){
+            Vector2 rel = Vector2.zero;
             //圆内随机需要半径和角度
             float angle = Range(0.0f, 360.0f);
             // rel.x = (float) Math.Cos(angle);
@@ -41,8 +40,8 @@ namespace IG.Runtime.Utils{
         /// </summary>
         /// <param name="radius"></param>
         /// <returns></returns>
-        public static UnityEngine.Vector2 RandomCircle(float radius){
-            UnityEngine.Vector2 rel = UnityEngine.Vector2.zero;
+        public static Vector2 RandomCircle(float radius){
+            Vector2 rel = Vector2.zero;
             //圆内随机需要半径和角度
             float angle = Range(0.0f, 360.0f);
             // rel.x = (float) Math.Cos(angle);
@@ -62,7 +61,7 @@ namespace IG.Runtime.Utils{
             rel   *= Range(0.0f, radius);
         }
 
-        public static UnityEngine.Vector2 RandomUnitCircle()               { return RandomCircle(1.0f); }
+        public static Vector2 RandomUnitCircle()               { return RandomCircle(1.0f); }
         public static void                RandomUnitCircle(ref Vector2 pos){ RandomCircle(ref pos, 1.0f); }
 
         /// <summary>
@@ -70,8 +69,8 @@ namespace IG.Runtime.Utils{
         /// </summary>
         /// <param name="radius"></param>
         /// <returns></returns>
-        public static UnityEngine.Vector2 RandomOnCircleEdge(float radius){
-            UnityEngine.Vector2 rel = UnityEngine.Vector2.zero;
+        public static Vector2 RandomOnCircleEdge(float radius){
+            Vector2 rel = Vector2.zero;
             // float unit = Range(0.0f, 1.0f);
             // float theta = (float) (2 * Math.PI * unit);
             float theta = Range(0.0f, 360.0f);
@@ -80,8 +79,8 @@ namespace IG.Runtime.Utils{
             return rel * radius;
         }
 
-        public static UnityEngine.Vector2 RandomSquare(float scale){
-            UnityEngine.Vector2 rel = UnityEngine.Vector2.one;
+        public static Vector2 RandomSquare(float scale){
+            Vector2 rel = Vector2.one;
             float               x   = Range(0.0f, rel.x);
             float               y   = Range(0.0f, rel.y);
             rel.x = x;
@@ -93,7 +92,7 @@ namespace IG.Runtime.Utils{
             long rel = 0;
             for (int i = idLength - 1; i >= 0; --i){
                 long integer   = MathUtils.GetInteger(i);
-                long randomNum = Math.Abs(RandomUtils.RandomInt(i == idLength - 1 ? 1 : 0, 10));
+                long randomNum = Math.Abs(RandomInt(i == idLength - 1 ? 1 : 0, 10));
                 rel += integer * randomNum;
             }
 

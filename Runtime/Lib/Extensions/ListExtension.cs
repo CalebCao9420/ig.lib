@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace IG.Runtime.Extension{
+namespace IG.Runtime.Extensions{
     using IG.Runtime.Utils;
 
     public static class ListExtension{
