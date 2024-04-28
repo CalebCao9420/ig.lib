@@ -68,7 +68,7 @@ namespace IG.Runtime.Common.FSM{
             }
         }
 
-        public void Setup(TState state){
+        public virtual void Setup(TState state){
             if (CurrentState != null){
                 CurrentState.Leave();
             }
