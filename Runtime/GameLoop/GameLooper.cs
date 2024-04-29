@@ -168,7 +168,7 @@ namespace IG{
             var methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
             foreach (var method in methods){
                 if (System.Attribute.IsDefined(method, typeof(IGBCEventAttribute))){
-                    IGBCEventAttribute igbcAttr = type.GetCustomAttribute<IGBCEventAttribute>();
+                    IGBCEventAttribute igbcAttr = method.GetCustomAttribute<IGBCEventAttribute>();
                     //考虑下创建的delegate要单独管理吗
                     var @delegate = (GameEvent)Delegate.CreateDelegate(typeof(GameEvent), null, method);
                     AddEvent(guid, @delegate);
@@ -195,7 +195,7 @@ namespace IG{
             var methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
             foreach (var method in methods){
                 if (System.Attribute.IsDefined(method, typeof(IGBCEventAttribute))){
-                    IGBCEventAttribute igbcAttr = type.GetCustomAttribute<IGBCEventAttribute>();
+                    IGBCEventAttribute igbcAttr = method.GetCustomAttribute<IGBCEventAttribute>();
                     if (GameEvents.TryGetValue(guid, out var list)){
                         foreach (var single in list){
                             this.DeregisterEvent(igbcAttr.EventType, single);
