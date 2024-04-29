@@ -165,7 +165,7 @@ namespace IG{
             }
 
             var type    = igbc.GetType();
-            var methods = type.GetMethods();
+            var methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
             foreach (var method in methods){
                 if (System.Attribute.IsDefined(method, typeof(IGBCEventAttribute))){
                     IGBCEventAttribute igbcAttr = type.GetCustomAttribute<IGBCEventAttribute>();
@@ -192,7 +192,7 @@ namespace IG{
 
             var igbc    = this.Ctrls[guid];
             var type    = igbc.GetType();
-            var methods = type.GetMethods();
+            var methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
             foreach (var method in methods){
                 if (System.Attribute.IsDefined(method, typeof(IGBCEventAttribute))){
                     IGBCEventAttribute igbcAttr = type.GetCustomAttribute<IGBCEventAttribute>();
