@@ -170,7 +170,7 @@ namespace IG{
                 if (System.Attribute.IsDefined(method, typeof(IGBCEventAttribute))){
                     IGBCEventAttribute igbcAttr = method.GetCustomAttribute<IGBCEventAttribute>();
                     //考虑下创建的delegate要单独管理吗
-                    var @delegate = (GameEvent)Delegate.CreateDelegate(typeof(GameEvent), null, method);
+                    var @delegate = (GameEvent)Delegate.CreateDelegate(typeof(GameEvent), igbc, method);
                     AddEvent(guid, @delegate);
                     this.RegisterEvent(igbcAttr.EventType, @delegate);
                 }
