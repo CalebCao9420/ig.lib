@@ -1,41 +1,31 @@
 ﻿namespace IG{
     public delegate bool GameEvent(float deltaTime);
-    
+
     public enum GameEventType{
-        Init,
-        FrameUpdate,
-        Update,
-        FixedIntervalUpdate,
-        FixedUpdate,
-        LateUpdate,
-        AsyncUpdate,
+        Init                = 1 << 2,
+        FrameUpdate         = 2 << 2,
+        Update              = 3 << 2,
+        FixedIntervalUpdate = 4 << 2,
+        FixedUpdate         = 5 << 2,
+        LateUpdate          = 6 << 2,
+        AsyncUpdate         = 7 << 2,
+        Destroy             = 8 << 2,
     }
 
     public interface IGBC{
         string GUID{ get; }
-
-        bool Init(float deltaTime);
-        bool FrameTick(float deltaTime);
-        bool Tick(float deltaTime);
-        bool FixedIntervalTick(float deltaTime);
-        bool FixedTick(float deltaTime);
-        bool LateTick(float deltaTime);
-        bool AsyncTick(float deltaTime);
-
-        bool OnDestroy();
     }
 
     public interface IGameLoop{
-        GameEvent OnInit{ get; }
-        GameEvent OnFrameTick{ get; }
-        GameEvent OnFixedIntervalTick{ get; }
-        GameEvent OnTick{ get; }
-        GameEvent OnFixedTick{ get; }
-        GameEvent OnLateTick{ get; }
-
-        GameEvent OnAsyncTick{ get; }
-
-        void RegisterEvent(GameEventType type, GameEvent @event);
-        void DeregisterEvent(GameEventType type, GameEvent @event);
+        // GameEvent OnInit             { get; }
+        // GameEvent OnFrameTick        { get; }
+        // GameEvent OnFixedIntervalTick{ get; }
+        // GameEvent OnTick             { get; }
+        // GameEvent OnFixedTick        { get; }
+        // GameEvent OnLateTick         { get; }
+        // GameEvent OnAsyncTick        { get; }
+        // GameEvent OnDestroy        { get; }
+        void      RegisterEvent(GameEventType   type, GameEvent @event);
+        void      DeregisterEvent(GameEventType type, GameEvent @event);
     }
 }

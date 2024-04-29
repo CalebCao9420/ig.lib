@@ -57,7 +57,7 @@ namespace IG.Runtime.Common.FSM{
             OnDispose();
         }
 
-        public void Tick(float deltaTime){
+        public virtual void Tick(float deltaTime){
             if (CurrentState != null){
                 if (CurrentState.IsComplete){
                     NextState();
