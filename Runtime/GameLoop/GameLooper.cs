@@ -11,7 +11,7 @@ namespace IG{
         /// <summary>
         /// 异步对象间隔更新时间
         /// </summary>
-        public WaitForSeconds WaitAsyncInterval = new WaitForSeconds(DeltaTime);
+        public WaitForSeconds WaitAsyncInterval;
 
         /// <summary>
         /// 帧更新固定间隔
@@ -73,6 +73,7 @@ namespace IG{
                 return;
             }
 
+            WaitAsyncInterval = new WaitForSeconds(DeltaTime);
             StopAllCoroutines();
             StartCoroutine(this.AsyncUpdate());
         }
