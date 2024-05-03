@@ -88,13 +88,13 @@ namespace IG.Runtime.Utils{
 
         public static void DestroyParent(this GameObject parent, bool desChild = false){
             if (desChild){
-                parent.DestroyChilds();
+                parent.DestroyKids();
             }
 
             DestroyObj(parent);
         }
 
-        public static void DestroyChilds(this GameObject parent){
+        public static void DestroyKids(this GameObject parent){
             int childCount = parent.transform.childCount;
             for (int i = 0; i < parent.transform.childCount; i++){
                 DestroyObj(parent.transform.GetChild(i));
@@ -102,7 +102,7 @@ namespace IG.Runtime.Utils{
             }
         }
 
-        public static void DestroyChilds(this Transform parent){
+        public static void DestroyKids(this Transform parent){
             foreach (Transform child in parent){
                 DestroyObj(child);
             }
