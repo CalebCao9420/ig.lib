@@ -14,18 +14,6 @@ namespace IG.Runtime.Utils{
             var assembly = parentType.Assembly;
             //获取该程序集中的所有类型
             var assemblyAllTypes = assembly.GetTypes();
-
-            //Old equals name
-            // foreach (var itemType in assemblyAllTypes){
-            //     var baseType = itemType.BaseType;
-            //     //如果有基类
-            //     if (baseType != null){
-            //         if (baseType.Name.Equals(parentType.Name)){
-            //             subTypeList.Add(itemType);
-            //         }
-            //     }
-            // }
-            //New judge subclassof
             foreach (var itemType in assemblyAllTypes){
                 if (itemType != parentType && itemType.IsSubclassOf(parentType)){
                     if (!containsAbstract && itemType.IsAbstract){
