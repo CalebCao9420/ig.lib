@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace IG.Runtime.Utils{
     public static class ADFUtils{
@@ -8,7 +9,7 @@ namespace IG.Runtime.Utils{
         /// </summary>
         /// <param name="parentType">给定的类型</param>
         /// <returns>所有子类的名称</returns>
-        public static List<Type> GetSubClass(Type parentType,bool containsAbstract = false){
+        public static List<Type> GetSubClass(Type parentType, bool containsAbstract = false){
             var subTypeList = new List<Type>();
             //获取当前父类所在的程序集``
             var assembly = parentType.Assembly;
@@ -19,7 +20,7 @@ namespace IG.Runtime.Utils{
                     if (!containsAbstract && itemType.IsAbstract){
                         continue;
                     }
-                    
+
                     subTypeList.Add(itemType);
                 }
             }
@@ -32,7 +33,7 @@ namespace IG.Runtime.Utils{
         /// </summary>
         /// <param name="parentType">给定的类型</param>
         /// <returns>所有子类的名称</returns>
-        public static List<Type> GetAllSubClass(Type parentType,bool containsAbstract){
+        public static List<Type> GetAllSubClass(Type parentType, bool containsAbstract){
             var subTypeList = new List<Type>();
 
             // 获取所有加载的程序集
@@ -44,7 +45,7 @@ namespace IG.Runtime.Utils{
                         if (!containsAbstract && itemType.IsAbstract){
                             continue;
                         }
-                        
+
                         subTypeList.Add(itemType);
                     }
                 }
@@ -54,7 +55,7 @@ namespace IG.Runtime.Utils{
         }
 
         // 获取所有继承自指定接口的类型
-        public static IEnumerable<Type> GetImplementingTypes(Type interfaceType,bool containsAbstract = false){
+        public static IEnumerable<Type> GetImplementingTypes(Type interfaceType, bool containsAbstract = false){
             var subTypeList = new List<Type>();
             // 获取所有程序集
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -67,6 +68,7 @@ namespace IG.Runtime.Utils{
                         if (!containsAbstract && type.IsAbstract){
                             continue;
                         }
+
                         subTypeList.Add(type);
                     }
                 }
@@ -74,5 +76,32 @@ namespace IG.Runtime.Utils{
 
             return subTypeList;
         }
+
+    #region Sort custom attribute
+
+        public enum SortType{
+            Order   = 1,  //顺序
+            Reverse = -1, //倒序
+        }
+
+        public static void SortByPriority(List<Type> classes, SortType sortType = SortType.Order){
+            classes.Sort(
+                         (x, y) => {
+                             var xPri = x.GetCustomAttribute(typeof(PriorityAttribute)) as PriorityAttribute;
+                             var yPri = y.GetCustomAttribute(typeof(PriorityAttribute)) as PriorityAttribute;
+                             if (xPri == null){
+                                 return 1 * (int)sortType;
+                             }
+
+                             if (yPri == null){
+                                 return -1 * (int)sortType;
+                             }
+
+                             return (xPri.Priority - yPri.Priority) * (int)sortType;
+                         }
+                        );
+        }
+
+    #endregion
     }
 }

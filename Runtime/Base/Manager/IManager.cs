@@ -1,6 +1,6 @@
 ﻿namespace IG.Manager{
     public interface IManager{
-        bool Init();
+        bool Reload();
         void Cleanup();
     }
 }

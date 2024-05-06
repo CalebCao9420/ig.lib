@@ -6,7 +6,7 @@ namespace IG{
         private static T s_instance = null;
 
         /// <summary>
-        /// Getinstance this instance.
+        /// GetInstance this instance.
         /// </summary>
         public static T Instance{
             get{

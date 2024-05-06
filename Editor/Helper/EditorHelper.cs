@@ -1,4 +1,6 @@
-﻿namespace IG.Editor.Helper{
+﻿using UnityEngine;
+
+namespace IG.Editor.Helper{
     using UnityEditor;
 
     public static class EditorHelper{
@@ -12,6 +14,13 @@
             EditorGUILayout.BeginHorizontal();
             cb?.Invoke();
             EditorGUILayout.EndHorizontal();
+        }
+
+        public static Vector2 Scroll(Vector2 pos,System.Action cb,bool showHorizontal,bool showVertical){
+            pos = GUILayout.BeginScrollView(pos, showHorizontal, showVertical);
+            cb?.Invoke();
+            GUILayout.EndScrollView();
+            return pos;
         }
     }
 }
