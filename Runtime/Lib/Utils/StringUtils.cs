@@ -272,10 +272,10 @@ namespace IG.Runtime.Utils{
             if (!IsDirPath(_path)) return string.Empty;
             string   result = string.Empty;
             string[] cut    = SplitBySign(URL_FORWARD_SIGN, _path);
-            result = cut[cut.Length - 1];
+            result = cut[^1];
             if (IsDirPath(result)){
                 cut    = SplitBySign(URL_REVERSE_SIGN, _path);
-                result = cut[cut.Length - 1];
+                result = cut[^1];
             }
 
             return result;
