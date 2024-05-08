@@ -74,6 +74,19 @@ namespace IG.Runtime.Utils{
             return result;
         }
 
+        /// <summary>
+        /// 简单遍历
+        /// </summary>
+        /// <param name="parent">父节点</param>
+        /// <param name="onCheck">检测到时</param>
+        public static void Ergodic(this Transform parent, System.Action<Transform> onCheck){
+            int childrenCount = parent?.childCount ?? 0;
+            for (int i = 0; i < childrenCount; i++){
+                Transform tr = parent.GetChild(i);
+                onCheck?.Invoke(tr);
+            }
+        }
+
         public static void DestroyParent(this GameObject parent, bool detachChildren = false){
             if (detachChildren){
                 parent.transform.DetachChildren();
