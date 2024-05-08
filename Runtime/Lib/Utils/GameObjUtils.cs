@@ -2,26 +2,25 @@
 using UnityEngine;
 
 namespace IG.Runtime.Utils{
-    using IG.Runtime.Extensions;
-    
+    using Extensions;
+
     /// <summary>
     /// 考虑一下 是否需要存一下引用
     /// </summary>
     public static class GameObjUtils{
         public static GameObject CreateGameObject(string name = "", bool isStatic = false){
-            GameObject obj = null;
-            obj = new GameObject(name);
-            obj.transform.localScale = Vector3.one;
+            GameObject obj = new GameObject(name);
+            obj.transform.localScale    = Vector3.one;
             obj.transform.localPosition = Vector3.zero;
-            obj.isStatic = isStatic;
+            obj.isStatic                = isStatic;
             return obj;
         }
 
         public static RectTransform CreateGameObject(this RectTransform parent, string name = "", bool isStatic = false){
-            GameObject obj = new GameObject(name);
-            var rectTrans = obj.GetOrAddComponent<RectTransform>();
+            GameObject obj       = new GameObject(name);
+            var        rectTrans = obj.GetOrAddComponent<RectTransform>();
             rectTrans.localScale = Vector3.one;
-            rectTrans.position = parent.position;
+            rectTrans.position   = parent.position;
             rectTrans.SetParent(parent);
             obj.isStatic = isStatic;
             return rectTrans;
@@ -30,46 +29,36 @@ namespace IG.Runtime.Utils{
         public static GameObject CreateGameObject(this Transform parent, string name = "", bool isStatic = false){
             GameObject obj = new GameObject(name);
             obj.transform.localScale = Vector3.one;
-            obj.transform.position = parent.position;
+            obj.transform.position   = parent.position;
             obj.transform.SetParent(parent);
             obj.isStatic = isStatic;
             return obj;
-            // return ObjectPool.Instance.Get(_name);
         }
 
         public static GameObject CreateGameObject<T>(this Transform parent, string name = "", bool isStatic = false)
             where T : Component{
             GameObject obj = new GameObject(name);
-            if (obj.GetComponent<T>() == null){
-                obj.AddComponent<T>();
-            }
-
+            _                        = obj.GetOrAddComponent<T>();
             obj.transform.localScale = Vector3.one;
-            obj.transform.position = parent.position;
+            obj.transform.position   = parent.position;
             obj.transform.SetParent(parent);
             obj.isStatic = isStatic;
             return obj;
-            // return ObjectPool.Instance.Get(_name);
         }
 
         public static GameObject CreateGameObject<T>(string name = "", bool isStatic = false) where T : Component{
             GameObject result = new GameObject(name);
-            result.transform.localScale = Vector3.one;
+            result.transform.localScale    = Vector3.one;
             result.transform.localPosition = Vector3.zero;
-            result.isStatic = isStatic;
-            // GameObject result = ObjectPool.Instance.Get(_name);
-            // result.GetOrAddComponent<T>();
-            if (result.GetComponent<T>() == null){
-                result.AddComponent<T>();
-            }
-
+            result.isStatic                = isStatic;
+            _                              = result.GetOrAddComponent<T>();
             return result;
         }
 
         public static T CreateGameObjectAndComponent<T>(string name = "", UnityEngine.Transform parent = null, bool isStatic = false)
             where T : Component{
             GameObject obj = new GameObject(name);
-            obj.transform.localScale = Vector3.one;
+            obj.transform.localScale    = Vector3.one;
             obj.transform.localPosition = Vector3.zero;
             obj.transform.SetParent(parent);
             obj.isStatic = isStatic;
@@ -82,23 +71,21 @@ namespace IG.Runtime.Utils{
                 result = obj.GetComponent<T>();
             }
 
-            // T result = ObjectPool.Instance.Get(_name).GetOrAddComponent<T>();
             return result;
         }
 
-        public static void DestroyParent(this GameObject parent, bool desChild = false){
-            if (desChild){
-                parent.DestroyKids();
+        public static void DestroyParent(this GameObject parent, bool detachChildren = false){
+            if (detachChildren){
+                parent.transform.DetachChildren();
             }
 
             DestroyObj(parent);
         }
 
         public static void DestroyKids(this GameObject parent){
-            int childCount = parent.transform.childCount;
-            for (int i = 0; i < parent.transform.childCount; i++){
+            int childCount = parent.transform?.childCount ?? 0;
+            for (int i = 0; i < childCount; i++){
                 DestroyObj(parent.transform.GetChild(i));
-                // ObjectPool.Instance.Recycle(_parent.transform.GetChild(i).gameObject);
             }
         }
 
@@ -117,14 +104,8 @@ namespace IG.Runtime.Utils{
             }
         }
 
-        /// <summary>
-        /// Destroy是 destroy
-        /// Recyle是Recyle
-        /// </summary>
-        /// <param name="obj"></param>
         public static void DestroyObj(Transform obj){
             if (Application.isPlaying){
-                // SampleObjectPool.Instance.Recycle(obj.gameObject);
                 GameObject.Destroy(obj.gameObject);
             }
             else{
@@ -132,15 +113,8 @@ namespace IG.Runtime.Utils{
             }
         }
 
-        /// <summary>
-        /// Destroy是 destroy
-        /// Recyle是Recyle
         public static void DestroyObj<T>(T obj) where T : Component{
             if (Application.isPlaying){
-                // if (obj is GameObject && SampleObjectPool.Instance.Contains(obj.gameObject)) {
-                //     SampleObjectPool.Instance.Recycle(obj.gameObject);
-                //     return;
-                // }
                 GameObject.Destroy(obj.gameObject);
             }
             else{
@@ -167,15 +141,15 @@ namespace IG.Runtime.Utils{
         /// </summary>
         public static void GenerateCollider(
             ref List<Vector2> edge,
-            SpriteRenderer body,
-            Vector2 centerPos,
-            float unit,
-            float tolerance = 0,
-            bool isTrigger = false,
-            Pivot pivot = Pivot.MidCenter){
+            SpriteRenderer    body,
+            Vector2           centerPos,
+            float             unit,
+            float             tolerance = 0,
+            bool              isTrigger = false,
+            Pivot             pivot     = Pivot.MidCenter){
             Sprite sprite = body.sprite;
             GetSpriteEdge(ref edge, sprite, centerPos, unit, tolerance, pivot);
-            Vector2[] edgeArr = edge.ToArray();
+            Vector2[]         edgeArr    = edge.ToArray();
             PolygonCollider2D collider2D = body.GetOrAddComponent<PolygonCollider2D>();
             collider2D.points = edgeArr;
             // collider2D.offset = ;
@@ -187,17 +161,17 @@ namespace IG.Runtime.Utils{
         /// </summary>
         public static List<Vector2> GetSpriteEdge(
             ref List<Vector2> edge,
-            Sprite sprite,
-            Vector2 centerPos,
-            float unit,
-            float tolerance = 0f,
-            Pivot pivot = Pivot.MidCenter){
+            Sprite            sprite,
+            Vector2           centerPos,
+            float             unit,
+            float             tolerance = 0f,
+            Pivot             pivot     = Pivot.MidCenter){
             Texture2D tex = sprite.texture;
             if (!tex.isReadable){
 #if UNITY_EDITOR
                 UnityEditor.TextureImporter ti = (UnityEditor.TextureImporter)UnityEditor.TextureImporter.GetAtPath(
-                    UnityEditor.AssetDatabase.GetAssetPath(tex)
-                );
+                                                                                                                    UnityEditor.AssetDatabase.GetAssetPath(tex)
+                                                                                                                   );
                 ti.isReadable = true;
                 UnityEditor.AssetDatabase.ImportAsset(UnityEditor.AssetDatabase.GetAssetPath(tex));
 #endif
@@ -227,7 +201,7 @@ namespace IG.Runtime.Utils{
                     offset *= 0.5f;
                     break;
                 case Pivot.MidRight:
-                    offset.x = 0;
+                    offset.x =  0;
                     offset.y *= 0.5f;
                     break;
                 case Pivot.UpLeft:
@@ -236,7 +210,7 @@ namespace IG.Runtime.Utils{
                     break;
                 case Pivot.UpCenter:
                     offset.x *= 0.5f;
-                    offset.y = 0;
+                    offset.y =  0;
                     break;
                 case Pivot.UpRight:
                     offset = Vector2.zero;
@@ -245,9 +219,9 @@ namespace IG.Runtime.Utils{
 
             //先拿到所有color
             // Color[] pixels = tex.GetPixels(minX, minY, maxX, maxY);
-            Vector2 center = new Vector2();
+            Vector2 center     = new Vector2();
             Vector2 tempAround = new Vector2();
-            int inner = 0, outer = 0, length = 0;
+            int     inner      = 0, outer = 0, length = 0;
             //alpha 小于等于0 数量>3 和alpha 大于0 数量>3 直接判断为边缘
             for (int x = minX; x < maxX; ++x){
                 for (int y = minY; y < maxY; ++y){
@@ -260,7 +234,7 @@ namespace IG.Runtime.Utils{
                     center.y = y;
                     List<Vector2> around = VectorUtils.GetRectangleAround(center, 1, 1);
                     length = around != null ? around.Count : 0;
-                    inner = outer = 0;
+                    inner  = outer = 0;
                     for (int i = 0; i < length; ++i){
                         tempAround = around[i];
                         if (tempAround.x < minX || tempAround.x >= maxX || tempAround.y < minY || tempAround.y >= maxY){
