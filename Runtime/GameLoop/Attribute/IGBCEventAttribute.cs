@@ -3,7 +3,7 @@
 
     [AttributeUsage(AttributeTargets.Method)]
     public class IGBCEventAttribute : System.Attribute{
-        public GameEventType EventType{ get; private set; }
-        public IGBCEventAttribute(GameEventType eventType){ EventType = eventType; }
+        public LoopEventType EventType{ get; private set; }
+        public IGBCEventAttribute(LoopEventType eventType){ EventType = eventType; }
     }
 }

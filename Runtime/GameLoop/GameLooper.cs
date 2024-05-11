@@ -51,20 +51,20 @@ namespace IG{
         /// </summary>
         public float IntervalCalTime{ get; private set; }
 
-        public GameEvent                OnInit             { get; private set; }
-        public GameEvent                OnFrameTick        { get; private set; }
-        public GameEvent                OnFixedIntervalTick{ get; private set; }
-        public GameEvent                OnTick             { get; private set; }
-        public GameEvent                OnFixedTick        { get; private set; }
-        public GameEvent                OnLateTick         { get; private set; }
-        public GameEvent                OnAsyncTick        { get; private set; }
-        public GameEvent                OnDestroy          { get; private set; }
+        public LoopEvent                OnInit             { get; private set; }
+        public LoopEvent                OnFrameTick        { get; private set; }
+        public LoopEvent                OnFixedIntervalTick{ get; private set; }
+        public LoopEvent                OnTick             { get; private set; }
+        public LoopEvent                OnFixedTick        { get; private set; }
+        public LoopEvent                OnLateTick         { get; private set; }
+        public LoopEvent                OnAsyncTick        { get; private set; }
+        public LoopEvent                OnDestroy          { get; private set; }
         public Dictionary<string, IGBC> Ctrls              { get; private set; } = new();
 
         /// <summary>
         /// 所有控制器保存的GameEvent
         /// </summary>
-        public Dictionary<string, List<GameEvent>> GameEvents{ get; private set; } = new();
+        public Dictionary<string, List<LoopEvent>> AllEvents{ get; private set; } = new();
 
         private bool _initComplete = false;
 
@@ -131,20 +131,20 @@ namespace IG{
             }
         }
 
-        private void AddEvent(string id, GameEvent @event){
-            if (GameEvents.TryGetValue(id, out var list)){
+        private void AddEvent(string id, LoopEvent @event){
+            if (AllEvents.TryGetValue(id, out var list)){
                 list.Add(@event);
             }
             else{
-                GameEvents.Add(id, new List<GameEvent>(){ @event });
+                AllEvents.Add(id, new List<LoopEvent>(){ @event });
             }
         }
 
         private void DelEvent(string id){
-            if (GameEvents.TryGetValue(id, out var list)){
+            if (AllEvents.TryGetValue(id, out var list)){
                 list.Clear();
                 list = null;
-                GameEvents.Remove(id);
+                AllEvents.Remove(id);
             }
         }
 
@@ -171,7 +171,7 @@ namespace IG{
                 if (System.Attribute.IsDefined(method, typeof(IGBCEventAttribute))){
                     IGBCEventAttribute igbcAttr = method.GetCustomAttribute<IGBCEventAttribute>();
                     //考虑下创建的delegate要单独管理吗
-                    var @delegate = (GameEvent)Delegate.CreateDelegate(typeof(GameEvent), igbc, method);
+                    var @delegate = (LoopEvent)Delegate.CreateDelegate(typeof(LoopEvent), igbc, method);
                     AddEvent(guid, @delegate);
                     this.RegisterEvent(igbcAttr.EventType, @delegate);
                 }
@@ -197,7 +197,7 @@ namespace IG{
             foreach (var method in methods){
                 if (System.Attribute.IsDefined(method, typeof(IGBCEventAttribute))){
                     IGBCEventAttribute igbcAttr = method.GetCustomAttribute<IGBCEventAttribute>();
-                    if (GameEvents.TryGetValue(guid, out var list)){
+                    if (AllEvents.TryGetValue(guid, out var list)){
                         foreach (var single in list){
                             this.DeregisterEvent(igbcAttr.EventType, single);
                         }
@@ -216,38 +216,38 @@ namespace IG{
         /// </summary>
         /// <param name="type"></param>
         /// <param name="event"></param>
-        public void RegisterEvent(GameEventType type, GameEvent @event){
+        public void RegisterEvent(LoopEventType type, LoopEvent @event){
             switch (type){
-                case GameEventType.Init:
+                case LoopEventType.Init:
                     this.OnInit -= @event;
                     this.OnInit += @event;
                     @event?.Invoke(DeltaTime);
                     break;
-                case GameEventType.FrameUpdate:
+                case LoopEventType.FrameUpdate:
                     this.OnFrameTick -= @event;
                     this.OnFrameTick += @event;
                     break;
-                case GameEventType.Update:
+                case LoopEventType.Update:
                     this.OnTick -= @event;
                     this.OnTick += @event;
                     break;
-                case GameEventType.FixedIntervalUpdate:
+                case LoopEventType.FixedIntervalUpdate:
                     this.OnFixedIntervalTick -= @event;
                     this.OnFixedIntervalTick += @event;
                     break;
-                case GameEventType.FixedUpdate:
+                case LoopEventType.FixedUpdate:
                     this.OnFixedTick -= @event;
                     this.OnFixedTick += @event;
                     break;
-                case GameEventType.LateUpdate:
+                case LoopEventType.LateUpdate:
                     this.OnLateTick -= @event;
                     this.OnLateTick += @event;
                     break;
-                case GameEventType.AsyncUpdate:
+                case LoopEventType.AsyncUpdate:
                     this.OnAsyncTick -= @event;
                     this.OnAsyncTick += @event;
                     break;
-                case GameEventType.Destroy: //实际上只是为了Ctrl方便使用
+                case LoopEventType.Destroy: //实际上只是为了Ctrl方便使用
                     this.OnDestroy -= @event;
                     this.OnDestroy += @event;
                     break;
@@ -259,30 +259,30 @@ namespace IG{
         /// </summary>
         /// <param name="type"></param>
         /// <param name="event"></param>
-        public void DeregisterEvent(GameEventType type, GameEvent @event){
+        public void DeregisterEvent(LoopEventType type, LoopEvent @event){
             switch (type){
-                case GameEventType.Init:
+                case LoopEventType.Init:
                     this.OnInit -= @event;
                     break;
-                case GameEventType.FrameUpdate:
+                case LoopEventType.FrameUpdate:
                     this.OnFrameTick -= @event;
                     break;
-                case GameEventType.Update:
+                case LoopEventType.Update:
                     this.OnTick -= @event;
                     break;
-                case GameEventType.FixedIntervalUpdate:
+                case LoopEventType.FixedIntervalUpdate:
                     this.OnFixedIntervalTick -= @event;
                     break;
-                case GameEventType.FixedUpdate:
+                case LoopEventType.FixedUpdate:
                     this.OnFixedTick -= @event;
                     break;
-                case GameEventType.LateUpdate:
+                case LoopEventType.LateUpdate:
                     this.OnLateTick -= @event;
                     break;
-                case GameEventType.AsyncUpdate:
+                case LoopEventType.AsyncUpdate:
                     this.OnAsyncTick -= @event;
                     break;
-                case GameEventType.Destroy: //实际上只是为了Ctrl方便使用
+                case LoopEventType.Destroy: //实际上只是为了Ctrl方便使用
                     this.OnDestroy -= @event;
                     @event?.Invoke(DeltaTime);
                     break;

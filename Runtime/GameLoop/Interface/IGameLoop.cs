@@ -1,7 +1,7 @@
 ﻿namespace IG{
-    public delegate bool GameEvent(float deltaTime);
+    public delegate bool LoopEvent(float deltaTime);
 
-    public enum GameEventType{
+    public enum LoopEventType{
         Init                = 1 << 2,
         FrameUpdate         = 2 << 2,
         Update              = 3 << 2,
@@ -25,7 +25,7 @@
         // GameEvent OnLateTick         { get; }
         // GameEvent OnAsyncTick        { get; }
         // GameEvent OnDestroy        { get; }
-        void      RegisterEvent(GameEventType   type, GameEvent @event);
-        void      DeregisterEvent(GameEventType type, GameEvent @event);
+        void      RegisterEvent(LoopEventType   type, LoopEvent @event);
+        void      DeregisterEvent(LoopEventType type, LoopEvent @event);
     }
 }
