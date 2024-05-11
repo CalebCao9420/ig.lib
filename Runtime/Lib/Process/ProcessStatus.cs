@@ -1,5 +1,5 @@
 ﻿namespace IG.Runtime.Progress{
-    public enum ProgressState{
+    public enum ProcessStatus{
         None       = 0,   //未启动
         Executing  = 1,   //执行中
         Successful = 200, //成功
