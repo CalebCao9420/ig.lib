@@ -1,4 +1,4 @@
-﻿namespace IG.Runtime.Progress{
+﻿namespace IG.Runtime.Process{
 
     public delegate ProcessStatus ProgressHandle();
     
