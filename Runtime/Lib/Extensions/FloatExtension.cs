@@ -1,11 +1,11 @@
 ﻿namespace IG.Runtime.Extensions{
     public static class FloatExtension{
         /// <summary>
-        /// 可以抽到工具方法里边去 
+        /// 根据当前已有值和最大值裁剪自身
         /// </summary>
-        public static float CullOverflowsVal(this float increase, float total, float target = 1.0f){
-            if (total + increase >= target){
-                increase = target - total;
+        public static float TrimExcess(this float increase, float total, float max = 1.0f){
+            if (total + increase >= max){
+                increase = max - total;
             }
 
             return increase;
