@@ -74,9 +74,9 @@ namespace IG.Runtime.Log{
     #region Const params
 
         public const string NULL_STR         = "NULL";
-        public const string LOG_PRINT_KEY    = "<font color=write>[LOG]:{0}</font>";
-        public const string WARING_PRINT_KEY = "<font color=yellolw>[WARNIING]:{0}</font>";
-        public const string ERROR_PRINT_KEY  = "<font color=red>[ERROR]:{0}</font>";
+        public const string LOG_PRINT_KEY    = "<color=write>[LOG]:{0}</color>";
+        public const string WARING_PRINT_KEY = "<color=yellolw>[WARNIING]:{0}</color>";
+        public const string ERROR_PRINT_KEY  = "<color=red>[ERROR]:{0}</color>";
         public const string GAME_MANUAL_KEY  = "======= Game Manual Upload =======";
 
         /// <summary>
