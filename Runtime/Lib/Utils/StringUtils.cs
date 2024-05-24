@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using Object = System.Object;
 
 namespace IG.Runtime.Utils{
-    using IG.Runtime.Extensions;
+    using Extensions;
 
     public static class StringUtils{
     #region Const
@@ -138,6 +139,54 @@ namespace IG.Runtime.Utils{
         public static void RecycleBuffer(this StringBuilder builder){
             builder.Clear();
             _builderCache.Add(builder);
+        }
+
+    #endregion
+
+    #region Utils
+
+        private static readonly char[] s_letter ={ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+
+        public static char NumberToLetter(int number){
+            int charIndex = Math.Clamp(number, 0, s_letter.Length - 1);
+            return s_letter[charIndex];
+        }
+
+        /// <summary>
+        /// 字符串做MD5后输出
+        /// </summary>
+        public static string String2MD5(string str){
+            string md5   = string.Empty;
+            byte[] bytes = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(str));
+            for (int i = 0; i < bytes.Length; ++i){
+                md5 += bytes[i].ToString("x").PadLeft(2, '0');
+            }
+
+            return md5;
+        }
+
+    #endregion
+
+    #region String Extension
+
+        /// <summary>
+        /// 非正则法匹配字符串内关键字数量 
+        /// </summary>
+        public static int CalcKeyInStr(this string str, string key){
+            int count      = 0;
+            int startIndex = 0;
+            int strLen     = str?.Length ?? 0;
+            while (startIndex < strLen){
+                int y = str.IndexOf(key, startIndex, StringComparison.Ordinal);
+                if (y < 0){
+                    break;
+                }
+
+                count++;
+                startIndex = y + 1;
+            }
+
+            return count;
         }
 
     #endregion
