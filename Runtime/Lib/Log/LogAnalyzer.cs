@@ -14,14 +14,16 @@ namespace IG.Runtime.Log{
         public int    MaxResendCount;
         public int    ErrorResendInterval;
         public bool   ReceiveLog;
+        public bool   UploadLog;
 
-        public LogConfig(string url, string urlDev, string token, int resendCount, int resendInterval, bool receiveLog){
+        public LogConfig(string url, string urlDev, string token, int resendCount, int resendInterval, bool receiveLog, bool upload){
             this.LogUploadURL        = url;
             this.LogUploadURLDev     = urlDev;
             this.Token               = token;
             this.MaxResendCount      = resendCount;
             this.ErrorResendInterval = resendInterval;
             this.ReceiveLog          = receiveLog;
+            this.UploadLog           = upload;
         }
     }
 
@@ -45,6 +47,11 @@ namespace IG.Runtime.Log{
         }
     }
 
+    /// <summary>
+    /// 日志统计
+    /// 当前是走配置做的
+    /// 可以考虑单独拆开，记录的只管记录，上传的才管上传
+    /// </summary>
     public class LogAnalyzer : SingletonMono<LogAnalyzer>{
     #region cnf
 
@@ -59,6 +66,8 @@ namespace IG.Runtime.Log{
         /// Callback : 1 string message  , 2 int code , 3 string data = call back google cloud storage server path , 4 long serverTime
         /// </summary>
         private static string s_URL;
+
+        private static bool s_Upload;
 
     #endregion
 
@@ -175,7 +184,7 @@ namespace IG.Runtime.Log{
         private static List<string>                _filterKeys    = new List<string>(){ "[玩家路径]", "[设备信息]", };
 
         public override void OnDispose(){
-            OnStandardQuit();
+            // OnStandardQuit();
             Release();
         }
 
@@ -197,9 +206,11 @@ namespace IG.Runtime.Log{
         /// <param name="path">日志路径</param>
         /// <param name="onLogCallback">日志回调</param>
         public void Setup(LogConfig logConfig){
+            this.Init();
             ReceivedLog      = logConfig.ReceiveLog;
             s_SavePath       = $"{Application.persistentDataPath}/Log";
             s_URL            = logConfig.LogUploadURL;
+            s_Upload         = logConfig.UploadLog;
             s_TokenKey       = logConfig.Token;
             s_MaxResendCount = logConfig.MaxResendCount;
             s_ResendInterval = logConfig.ErrorResendInterval;
@@ -233,7 +244,9 @@ namespace IG.Runtime.Log{
 
             //Upload
             try{
-                UploadLogFile(s_URL);
+                if (s_Upload){
+                    UploadLogFile(s_URL);
+                }
             }
             catch (Exception e){
                 LogHelper.Log($"[日志]:上传日志错误{e}", LogType.Error);
@@ -382,8 +395,8 @@ namespace IG.Runtime.Log{
             Application.quitting -= OnStandardQuit;
             Application.quitting += OnStandardQuit;
         }
-
-        private void OnApplicationPause(bool pauseStatus){
+        
+        protected override void OnApplicationPause(bool pauseStatus){
             if (pauseStatus){
                 LogHelper.Log(GAME_BACK_KEY);
             }

@@ -58,7 +58,7 @@ namespace IG{
         public LoopEvent                OnFixedTick        { get; private set; }
         public LoopEvent                OnLateTick         { get; private set; }
         public LoopEvent                OnAsyncTick        { get; private set; }
-        public LoopEvent                OnDestroy          { get; private set; }
+        public LoopEvent                OnDestroyTrigger          { get; private set; }
         public Dictionary<string, IGBC> Ctrls              { get; private set; } = new();
 
         /// <summary>
@@ -248,8 +248,8 @@ namespace IG{
                     this.OnAsyncTick += @event;
                     break;
                 case LoopEventType.Destroy: //实际上只是为了Ctrl方便使用
-                    this.OnDestroy -= @event;
-                    this.OnDestroy += @event;
+                    this.OnDestroyTrigger -= @event;
+                    this.OnDestroyTrigger += @event;
                     break;
             }
         }
@@ -283,7 +283,7 @@ namespace IG{
                     this.OnAsyncTick -= @event;
                     break;
                 case LoopEventType.Destroy: //实际上只是为了Ctrl方便使用
-                    this.OnDestroy -= @event;
+                    this.OnDestroyTrigger -= @event;
                     @event?.Invoke(DeltaTime);
                     break;
             }
