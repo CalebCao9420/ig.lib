@@ -13,6 +13,11 @@ namespace IG.Runtime.Utils{
     #region Const
 
         /// <summary>
+        /// string 时间格式化-full时间格式
+        /// </summary>
+        public const string DATE_TIME_FORMAT_FULL = "yyyy-M-d HH:mm:ss";
+
+        /// <summary>
         /// string 空格
         /// </summary>
         public const string EMPTY_SPACE_STR = " ";

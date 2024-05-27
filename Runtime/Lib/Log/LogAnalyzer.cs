@@ -487,7 +487,7 @@ namespace IG.Runtime.Log{
         private void OnStandardStart(){
             LogHelper.Log(GAME_START_KEY);
             DateTime date = DateTime.Now;
-            LogHelper.Log(date.ToString("yyyy-M-d HH:mm:ss"));
+            LogHelper.Log(date.ToString(StringUtils.DATE_TIME_FORMAT_FULL));
         }
 
         /// <summary>
