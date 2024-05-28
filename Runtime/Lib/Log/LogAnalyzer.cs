@@ -175,11 +175,10 @@ namespace IG.Runtime.Log{
             PlayerPrefs.SetString(logPathKey,    logPath);
             LogHelper.Log("[Current][日志路径]:" + logPath);
             LogHelper.Log("[Pre][日志路径]:"     + prevLogPath);
-            Path = logPath; //路径地址
-            OnStandardStart();
-            LogHelper.Log($"[设备信息]:{DeviceInfo.GetAllMemory()}");
+            Path           = logPath; //路径地址
             s_initComplete = true;
             s_isDestroy    = false;
+            OnStandardStart();
         }
 
         /// <summary>
@@ -263,6 +262,7 @@ namespace IG.Runtime.Log{
             LogHelper.Log(LogConst.GAME_START_KEY);
             DateTime date = DateTime.Now;
             LogHelper.Log(date.ToString(StringUtils.DATE_TIME_FORMAT_FULL));
+            LogHelper.Log($"[设备信息]:{DeviceInfo.GetAllMemory()}");
         }
 
         /// <summary>
