@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using IG.Runtime.Log;
 using UnityEngine;
 
 namespace IG.Runtime.Common.FSM{
@@ -19,7 +20,6 @@ namespace IG.Runtime.Common.FSM{
         protected virtual void NextState(){
             if (CurrentState != null){
                 CurrentState.Leave();
-                // Debug.Log(CurrentState.State.ToString() + " leave"); //Log不在base输出,需要看State的FSM自己输出
                 var nextState = GetNextState(CurrentState);
                 CurrentState = nextState;
                 if (nextState != null){
@@ -35,7 +35,7 @@ namespace IG.Runtime.Common.FSM{
             var status     = cur.Status;
             var transition = GetTransition(cur.State);
             if (transition == null){
-                // Debug.Log("Transition not found, already last state!");//TODO:Log走依赖倒置，用ILog接口,不在这里输出
+                LogHelper.Log("Transition not found, already last state!", LogType.Error);
                 Dispose();
                 return null;
             }

@@ -40,9 +40,9 @@ namespace IG.Runtime.Log{
     #region Const params
 
         public const string NULL_STR         = "NULL";
-        public const string LOG_PRINT_KEY    = "<color=write>[LOG]:{0}</color>";
-        public const string WARING_PRINT_KEY = "<color=yellolw>[WARNIING]:{0}</color>";
-        public const string ERROR_PRINT_KEY  = "<color=red>[ERROR]:{0}</color>";
+        public const string LOG_PRINT_KEY    = "[LOG]:{0}";
+        public const string WARING_PRINT_KEY = "[WARNIING]:{0}";
+        public const string ERROR_PRINT_KEY  = "[ERROR]:{0}";
 
         /// <summary>
         /// 错误日志达到一定数量hook 设备信息
