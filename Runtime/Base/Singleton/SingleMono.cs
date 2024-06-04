@@ -13,7 +13,7 @@ namespace IG{
             }
 
             s_instance = this as T;
-            OnAwake();
+            Init();
         }
 
         private void Start(){
@@ -23,11 +23,6 @@ namespace IG{
 
             this.OnStart();
         }
-
-        /// <summary>
-        /// Raises the awake event.
-        /// </summary>
-        protected virtual void OnAwake(){ }
 
         /// <summary>
         /// Raises the start event.
@@ -56,9 +51,7 @@ namespace IG{
         /// <summary>
         /// Raises the destroy event.
         /// </summary>
-        public virtual void OnDestroy(){
-            SingletonManager.Remove(this);
-        }
+        public virtual void OnDestroy(){ SingletonManager.Remove(this); }
 
         /// <summary>
         /// Gets a value indicating is valid.

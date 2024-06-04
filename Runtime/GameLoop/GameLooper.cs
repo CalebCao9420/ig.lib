@@ -78,9 +78,10 @@ namespace IG{
             StartCoroutine(this.AsyncUpdate());
         }
 
-        private void OnDisable(){ StopAllCoroutines(); }
+        private         void OnDisable(){ StopAllCoroutines(); }
 
-        protected override void OnAwake(){
+        public override void Init(){
+            base.Init();
             // GameFrame = GameConfig.GameFrame;//TODO:
             GameFrame = 60;
             GameSpeed = 1.0f;
