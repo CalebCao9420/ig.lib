@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using IG.AssetBundle;
-using IG.Editor.Helper;
 using IG.IO;
 using IG.Runtime.Common;
 using IG.Runtime.Utils;
-using UnityEditor;
-using UnityEditor.Build.Reporting;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor.Build.Reporting;
+using IG.Editor.Helper;
+using UnityEditor;
 
 namespace IG.Editor.Res{
     public partial class BuildSettings : EditorWindow{
@@ -381,18 +382,18 @@ namespace IG.Editor.Res{
             foreach (DirectoryInfo currentDIR in dirScenesDIRArray){
                 //遍历目录下的所有的文件,
                 //如果是目录，则继续递归访问里面的文件，直到定位到文件。
-                string        tmpDIR           = strNeedSetABLableRootDIR + "/" + currentDIR.Name; //res/**
-                DirectoryInfo tmpScenesDIRInfo = new DirectoryInfo(tmpDIR);
-                int           tmpIndex         = tmpDIR.LastIndexOf("/");
-                string        tmpName          = tmpDIR.Substring(tmpIndex + 1);
+                string tmpDIR = strNeedSetABLableRootDIR + "/" + currentDIR.Name; //res/**
+                // DirectoryInfo tmpScenesDIRInfo = new DirectoryInfo(tmpDIR);
+                // int           tmpIndex         = tmpDIR.LastIndexOf("/");
+                // string        tmpName          = tmpDIR.Substring(tmpIndex + 1);
                 //递归调用与处理目录或文件系统，如果找到文件，修改AssetBundle 的标签（label）
-                JudgeDIROrFileByRecursive(currentDIR, tmpName);
+                JudgeDIROrFileByRecursive(currentDIR, currentDIR.Name);
             } //foreach_end
 
             //将生成的bundle名与资源名添加到json文件
             List<AssetBundleConfig> list        = bundleMap.Values();
             var                     jsonContent = JSONUtils.ObjectToJson(list);
-            FileManage.WriteString(BuildSettingData.Instance.ABInfoFile, jsonContent);
+            FileManager.WriteString(BuildSettingData.GetABBundleInfo(), jsonContent);
             Debug.Log("Json数据配置完成！");
             //刷新
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
@@ -406,8 +407,8 @@ namespace IG.Editor.Res{
         /// 2：如果是文件，则给文件做“AB标记”
         /// </summary>
         /// <param name="dirInfo">目录信息</param>
-        /// <param name="scenesName">场景名称</param>
-        private static void JudgeDIROrFileByRecursive(FileSystemInfo fileSysInfo, string scenesName){
+        /// <param name="packName">场景名称</param>
+        private static void JudgeDIROrFileByRecursive(FileSystemInfo fileSysInfo, string packName){
             if (!fileSysInfo.Exists){
                 Debug.LogError("文件或目录名称： " + fileSysInfo.Name + " 不存在，请检查！");
                 return;
@@ -424,12 +425,23 @@ namespace IG.Editor.Res{
                     //Old 处理是每个File的直系目录作为ab
                     // SetFileABLabel(fileInfoObj, dirInfoObj.Name);
                     //New 处理是更改为每个File的直属于AB的根目录为ab，例如(ABRes/Prefabs/Character/Effect/Slash.prefab, ab就是Prefabs)
-                    SetFileABLabel(fileInfoObj, scenesName);
+                    SetFileABLabel(fileInfoObj, packName);
                 }
                 //目录类型
                 else{
+                    if (fileInfo.Name.Equals(packName)){
+                        continue;
+                    }
+
+                    string nextFolder = packName;
                     //递归下一层
-                    JudgeDIROrFileByRecursive(fileInfo, scenesName);
+                    if (fileInfo is DirectoryInfo tmpDIR){
+                        int    tmpIndex = tmpDIR.FullName.LastIndexOf("\\");
+                        string tmpName  = tmpDIR.FullName.Substring(tmpIndex + 1);
+                        nextFolder += $"/{tmpName}";
+                    }
+
+                    JudgeDIROrFileByRecursive(fileInfo, nextFolder);
                 }
             }
         }
@@ -439,7 +451,7 @@ namespace IG.Editor.Res{
         /// </summary>
         /// <param name="fileInfo">文件信息</param>
         /// <param name="scenesName">场景名称</param>
-        private static void SetFileABLabel(FileInfo fileInfo, string prefabName){
+        private static void SetFileABLabel(FileInfo fileInfo, string packName){
             //AssetBundle 包名称
             string strABName = string.Empty;
             //(资源)文件路径（相对路径）
@@ -456,8 +468,8 @@ namespace IG.Editor.Res{
             strAssetFilePath = fileInfo.FullName.Substring(tmpIndex);
             //给资源文件设置AB名称与后缀
             AssetImporter tmpAssetImportObj = AssetImporter.GetAtPath(strAssetFilePath);
-            tmpAssetImportObj.assetBundleName = prefabName.ToLower(); //设置AB包名
-            if (fileInfo.Extension.Equals(PathConst.Suffix.UNITY))    //设置AB包扩展名称 
+            tmpAssetImportObj.assetBundleName = packName.ToLower(); //设置AB包名
+            if (fileInfo.Extension.Equals(PathConst.Suffix.UNITY))  //设置AB包扩展名称 
             {
                 tmpAssetImportObj.assetBundleVariant = StringUtils.GetSuffix(PathConst.Suffix.U3D, '.');
             }
@@ -578,7 +590,7 @@ namespace IG.Editor.Res{
         }
 
         private static void InsertABPackConfig(List<AssetBundleConfig> configs, string path){
-            string            bundleName = BuildSettingData.Instance.ABBundleName;
+            string            bundleName = BuildSettingData.GetPlatformABDirName();
             string            filePath   = string.Format(FORMAT_PATH, path, bundleName);
             AssetBundleConfig abConfig   = new AssetBundleConfig();
             abConfig.Name = bundleName;
@@ -588,3 +600,4 @@ namespace IG.Editor.Res{
         }
     }
 }
+#endif

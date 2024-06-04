@@ -15,7 +15,7 @@ namespace IG.IO{
     /// File manage.
     /// TODO:打包考虑，去除TMPro和spine-unity内容
     /// </summary>
-    public class FileManage{
+    public class FileManager{
     #region 判断文件是否存在.
 
         /// <summary>

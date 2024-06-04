@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 
+#if UNITY_EDITOR
+
 namespace IG.Editor.Helper{
     using UnityEditor;
 
@@ -71,3 +73,4 @@ namespace IG.Editor.Helper{
         }
     }
 }
+#endif

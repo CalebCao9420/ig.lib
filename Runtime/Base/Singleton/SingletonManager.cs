@@ -5,6 +5,8 @@ namespace IG{
     /// Singleton manager.
     /// </summary>
     public static class SingletonManager{
+        public const string SINGLE_MONO_NAME = "SingletonMono";
+        
         /// <summary>
         /// Must lazy
         /// </summary>
@@ -12,7 +14,7 @@ namespace IG{
             get{
                 lock (s_lock){
                     if (s_singletonRoot_static == null){
-                        s_singletonRoot_static = new UnityEngine.GameObject("SingletonMono");
+                        s_singletonRoot_static = new UnityEngine.GameObject(SINGLE_MONO_NAME);
                     }
 
                     return s_singletonRoot_static;

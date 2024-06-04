@@ -1,7 +1,8 @@
 using System;
 using UnityEngine;
-using UnityEditor;
 using System.IO;
+#if UNITY_EDITOR
+using UnityEditor;
 
 namespace IG.Editor.Res{
     public partial class BuildSettingData : ScriptableObject{
@@ -95,8 +96,7 @@ namespace IG.Editor.Res{
         public string ABResDir     = String.Empty;
         public string ABInfoFile   = "au_abinfo.table";
         public string ABPackResMap = "au_map.table"; //资源包和资源映射表
-        public string AB_MANIFEST => $"{ABBundleName}.manifest";
-        public string ABBundleName = "";
+        public string AB_MANIFEST => $"{GetPlatformABDirName()}.manifest";
 
         /// <summary>
         /// 本地AB包
@@ -175,3 +175,4 @@ namespace IG.Editor.Res{
         }
     }
 }
+#endif
