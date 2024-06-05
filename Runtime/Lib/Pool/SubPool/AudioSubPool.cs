@@ -1,62 +1,76 @@
 ﻿using System;
 using System.Collections.Generic;
 using IG.AssetBundle;
-using IG.Runtime.Common;
+using IG.Runtime.Extensions;
+using IG.Runtime.Log;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace IG.Pool.SubPool{
     public class AudioSubPool : ISubPool, IDisposable{
-         public string                        Name      { get{ return this._Key; } }
-    public      string                        SourcePath{ get{ return this._SourcePath; } }
-    public      PoolResourceType              PoolType  { get{ return this._PoolType; } }
-    protected   PoolResourceType              _PoolType;
-    protected   string                        _Key;
-    protected   string                        _SourcePath;
-    protected   Dictionary<string, AudioClip> _Pool;
-    protected AudioSubPool(){ }
+        public    string           Name    { get{ return this._Key; } }
+        public    string           Path    { get{ return this._Path; } }
+        public    PoolResourceType PoolType{ get{ return this._PoolType; } }
+        protected PoolResourceType _PoolType;
+        protected string           _Key;
+        protected string           _Path; //类似于Bundle
+        protected List<AudioClip>  _Pool;
+        protected AudioSubPool(){ }
 
-    public AudioSubPool(PoolResourceType type, string sourcePath){
-        this._PoolType = type;
-        this._Key = sourcePath;
-        this._SourcePath = sourcePath;
-        this._Pool = new Dictionary<string, AudioClip>();
-
-        //TODO:Editor 才需要区分格式，打出的ab包直接一个LoadAll即可
-        // Object[] allAudio_mp3  = AssetSystem.LoadAll(PathConfig.BundleRelated.SOUND_BUNDLE, typeof(AudioClip), PathConst.Suffix.SOUND);
-        // Object[] allAudio2_wav = AssetSystem.LoadAll(PathConfig.BundleRelated.SOUND_BUNDLE, typeof(AudioClip), PathConst.Suffix.SOUND2);
-        // int      length        = allAudio_mp3 == null ? 0 : allAudio_mp3.Length;
-        // for (int i = 0; i < length; ++i){
-        //     if (this._Pool.ContainsKey(allAudio_mp3[i].name)){
-        //         Debug.Log($"Object pool repeat add the same obj:{allAudio_mp3[i].name}");
-        //         continue;
-        //     }
-        //
-        //     _Pool.Add(allAudio_mp3[i].name, allAudio_mp3[i] as AudioClip);
-        // }
-        //
-        // length = allAudio2_wav == null ? 0 : allAudio2_wav.Length;
-        // for (int i = 0; i < length; ++i){
-        //     if (this._Pool.ContainsKey(allAudio2_wav[i].name)){
-        //         Debug.Log($"Object pool repeat add the same obj:{allAudio2_wav[i].name}");
-        //         continue;
-        //     }
-        //
-        //     _Pool.Add(allAudio2_wav[i].name, allAudio2_wav[i] as AudioClip);
-        // }
-    }
-    
-    public void Recycle(Object obj){ }
-    public void Clear(bool cleanMemory = false){ }
-    public Object Spawn(string name){ return null; }
-    public bool SpawnAsync(AsyncReqParam param){ return true; }
-    public bool IsLock(){ return true; }
-
-    public void Dispose(){
-        if (this._Pool != null){
-            this._Pool.Clear();
-            this._Pool = null;
+        public AudioSubPool(PoolResourceType type, string path){
+            this._Path = path;
+            AssetSystem.HookBundleAndAssetName(path, out string notDo, out this._Key);
+            this._PoolType = type;
+            this._Pool     = new();
+            var origin = AssetSystem.Load<AudioClip>(path);
+            this._Pool.Add(origin);
         }
-    }
+
+        public void Recycle(Object obj){
+            if (obj is AudioClip audioClip){
+                this._Pool.Add(audioClip);
+            }
+        }
+
+        public void Clear(bool cleanMemory = false){ }
+
+        public Object Spawn(){
+            AudioClip rel;
+            if (_Pool.Count > 0){
+                rel = _Pool.First(true);
+            }
+            else{
+                rel = AssetSystem.Load<AudioClip>(this.Path);
+            }
+
+            return rel;
+        }
+
+        public bool SpawnAsync(AsyncReqParam param){
+            if (param.OnCompleted == null){
+                LogHelper.Log(this, $"Audio异步回调不能为空:{param.Name}");
+                return false;
+            }
+
+            if (_Pool.Count > 0){
+                param.OnCompleted.Invoke(_Pool.First(true));
+            }
+            else{
+                Action<object, object> callback = (ac, bc) => {
+                    var rel = ac as AudioClip;
+                    param.OnCompleted.Invoke(rel);
+                };
+                AssetSystem.LoadAsync(callback, this.Path);
+            }
+
+            return true;
+        }
+
+        public void Dispose(){
+            if (this._Pool != null){
+                this._Pool.Clear();
+                this._Pool = null;
+            }
+        }
     }
 }

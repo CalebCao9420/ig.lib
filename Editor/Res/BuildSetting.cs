@@ -4,6 +4,7 @@ using System.IO;
 using IG.AssetBundle;
 using IG.IO;
 using IG.Runtime.Common;
+using IG.Runtime.Extensions;
 using IG.Runtime.Utils;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -188,6 +189,8 @@ namespace IG.Editor.Res{
             DefaultSpace();
             Data.ABPackResMap = EditorHelper.HasTitleField("AB资源映射表名", Data.ABPackResMap, WINDOWS_WIDTH_DEFAULT, WINDOWS_HEIGHT_DEFAULT);
             DefaultSpace();
+            Data.ABTotalMap = EditorHelper.HasTitleField("AB总资源表名", Data.ABTotalMap, WINDOWS_WIDTH_DEFAULT, WINDOWS_HEIGHT_DEFAULT);
+            DefaultSpace();
             EditorHelper.HorizontalPair(DrawPackRes);
         }
 
@@ -331,8 +334,9 @@ namespace IG.Editor.Res{
             // version = ver[0] + "." + ver[1] + "." + (int.Parse(ver[2]) + 1);
         }
 
-        public static Dictionary<string, AssetBundleConfig> bundleMap   = null; //存储设置label的ab配置数据
-        public static Dictionary<string, List<string>>      bundlePacks = null;
+        public static Dictionary<string, AssetBundleConfig> S_BundleMap    = null; //存储设置label的ab配置数据
+        public static Dictionary<string, string>            S_ResBundleMap = null; //key:资源完整路径 value:bundle名
+        public static Dictionary<string, List<string>>      S_BundlePacks  = null;
 
         /// <summary>
         /// 打包生成所有AssetBundles
@@ -351,7 +355,7 @@ namespace IG.Editor.Res{
             BuildPipeline.BuildAssetBundles(strABOutPathDIR, BuildAssetBundleOptions.ChunkBasedCompression, buildTarget);
             // BuildPipeline.BuildAssetBundles(strABOutPathDIR, BuildAssetBundleOptions.None, buildTarget);
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-            OnPostBuild(bundleMap, ref strABOutPathDIR, BuildSettingData.Instance.ABInfoFile);
+            OnPostBuild(strABOutPathDIR);
             Debug.Log("AB资源打包完成-文件路径：" + strABOutPathDIR);
         }
 
@@ -360,8 +364,9 @@ namespace IG.Editor.Res{
         /// </summary>
         [MenuItem("AssetManager/1.Set AB Label")]
         public static void SetABLabels(){
-            bundleMap   = new Dictionary<string, AssetBundleConfig>();
-            bundlePacks = new Dictionary<string, List<string>>();
+            S_BundleMap    = new();
+            S_BundlePacks  = new();
+            S_ResBundleMap = new();
             //需要给AB做标记的根目录
             string strNeedSetABLableRootDIR = "";
             //目录信息
@@ -382,7 +387,7 @@ namespace IG.Editor.Res{
             foreach (DirectoryInfo currentDIR in dirScenesDIRArray){
                 //遍历目录下的所有的文件,
                 //如果是目录，则继续递归访问里面的文件，直到定位到文件。
-                string tmpDIR = strNeedSetABLableRootDIR + "/" + currentDIR.Name; //res/**
+                // string tmpDIR = strNeedSetABLableRootDIR + "/" + currentDIR.Name; //res/**
                 // DirectoryInfo tmpScenesDIRInfo = new DirectoryInfo(tmpDIR);
                 // int           tmpIndex         = tmpDIR.LastIndexOf("/");
                 // string        tmpName          = tmpDIR.Substring(tmpIndex + 1);
@@ -390,15 +395,12 @@ namespace IG.Editor.Res{
                 JudgeDIROrFileByRecursive(currentDIR, currentDIR.Name);
             } //foreach_end
 
-            //将生成的bundle名与资源名添加到json文件
-            List<AssetBundleConfig> list        = bundleMap.Values();
-            var                     jsonContent = JSONUtils.ObjectToJson(list);
-            FileManager.WriteString(BuildSettingData.GetABBundleInfo(), jsonContent);
-            Debug.Log("Json数据配置完成！");
+            //Post execute
+            OnPostSetABLabel();
             //刷新
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
             //提示
-            Debug.Log("AssetBundles 标签设置完成！");
+            Debug.Log("AssetBundles 标签设置完成！".CyanColor());
         }
 
         /// <summary>
@@ -481,20 +483,30 @@ namespace IG.Editor.Res{
             int    dex         = strAssetFilePath.LastIndexOf("\\");
             string abnameKey   = strAssetFilePath.Substring(dex + 1).Replace(PathConst.Suffix.PREFAB, "");
             string abnameValue = tmpAssetImportObj.assetBundleName + "." + tmpAssetImportObj.assetBundleVariant;
-            if (!bundleMap.TryGetValue(abnameValue, out var value)){
+            //add in bundle map
+            if (!S_BundleMap.TryGetValue(abnameValue, out var value)){
                 AssetBundleConfig valueNode = new AssetBundleConfig{ Name = abnameValue, CRC = 0, Size = 0 };
-                bundleMap.Add(abnameValue, valueNode);
+                S_BundleMap.Add(abnameValue, valueNode);
             }
             else{
                 value.Size += fileInfo.Length;
             }
 
-            if (!bundlePacks.ContainsKey(abnameValue)){
+            //add in res bundle map
+            //res-bundle资源映射需要把bundle一起处理到key
+            string remakeFilePath = strAssetFilePath.Replace('\\', '/'); 
+            int    bundleIndex    = remakeFilePath.IndexOf(packName);
+            string resBundleKey   = remakeFilePath.Substring(bundleIndex);
+            // S_ResBundleMap.Add(abnameKey, abnameValue);
+            S_ResBundleMap.Add(resBundleKey, abnameValue);
+
+            //add in bundle pack
+            if (!S_BundlePacks.ContainsKey(abnameValue)){
                 List<string> valueNode = new List<string>(){ abnameKey };
-                bundlePacks.Add(abnameValue, valueNode);
+                S_BundlePacks.Add(abnameValue, valueNode);
             }
             else{
-                bundlePacks[abnameValue].Add(abnameKey);
+                S_BundlePacks[abnameValue].Add(abnameKey);
             }
         }
 
@@ -538,13 +550,61 @@ namespace IG.Editor.Res{
         }
 
         /// <summary>
+        /// Set ab label 后处理
+        /// </summary>
+        private static void OnPostSetABLabel(){
+            RecordPreBundleInfo(); //Record bundle
+            RecordResBundleMap();  //Record res-bundle 
+            RecordTotalMap();      //Record total bundle 
+        }
+
+        /// <summary>
+        /// 记录所有资源表
+        /// </summary>
+        private static void RecordTotalMap(){
+            //将生成的bundle名与资源名添加到json文件
+            var map         = S_BundlePacks;
+            var jsonContent = JSONUtils.ObjectToJson(map);
+            FileManager.WriteString(BuildSettingData.GetABTotalBundleInfo(), jsonContent);
+            Debug.Log("Total Res Map数据配置完成！".GreenColor());
+        }
+
+        /// <summary>
+        /// 记录资源-bundle映射表
+        /// </summary>
+        private static void RecordResBundleMap(){
+            //将生成的bundle名与资源名添加到json文件
+            var map         = S_ResBundleMap;
+            var jsonContent = JSONUtils.ObjectToJson(map);
+            FileManager.WriteString(BuildSettingData.GetABBundleMapInfo(), jsonContent);
+            Debug.Log("Res-Bundle Map数据配置完成！".GreenColor());
+        }
+
+        /// <summary>
+        /// 记录bundle信息
+        /// </summary>
+        private static void RecordPreBundleInfo(){
+            //将生成的bundle名与资源名添加到json文件
+            List<AssetBundleConfig> list        = S_BundleMap.Values();
+            var                     jsonContent = JSONUtils.ObjectToJson(list);
+            FileManager.WriteString(BuildSettingData.GetABBundleInfo(), jsonContent);
+            Debug.Log("Bundle数据配置完成！".GreenColor());
+        }
+
+        /// <summary>
         /// 完成Ab资源Build后，再次回去修改ab_info.table内容
         /// </summary>
         /// <param name="configMap"></param>
         /// <param name="path"></param>
         /// <param name="buildPath"></param>
-        private static void OnPostBuild(Dictionary<string, AssetBundleConfig> configMap, ref string path, string buildPath){
+        private static void OnPostBuild(string path){
             EditorUtility.ClearProgressBar();
+            RecordBundleInfo(path);
+            EditorUtility.ClearProgressBar();
+        }
+
+        private static void RecordBundleInfo(string outDir){
+            var                     configMap    = S_BundleMap;
             List<AssetBundleConfig> configs      = new List<AssetBundleConfig>();
             string                  tempFilePath = string.Empty;
             foreach (AssetBundleConfig config in configMap.Values){
@@ -554,7 +614,7 @@ namespace IG.Editor.Res{
 
                 //recalculate size and crc
                 if (config.CRC <= 0){
-                    tempFilePath = string.Format(FORMAT_PATH, path, config.Name);
+                    tempFilePath = string.Format(FORMAT_PATH, outDir, config.Name);
                     BuildPipeline.GetCRCForAssetBundle(tempFilePath, out config.CRC);
                 }
 
@@ -564,7 +624,7 @@ namespace IG.Editor.Res{
                 configs.Add(config);
             }
 
-            string manifestFilePath = string.Format(FORMAT_PATH, path, BuildSettingData.Instance.AB_MANIFEST);
+            string manifestFilePath = string.Format(FORMAT_PATH, outDir, BuildSettingData.Instance.AB_MANIFEST);
             if (!File.Exists(manifestFilePath)){
                 // throw new NullReferenceException("manifest不能为空!");
                 EditorUtility.DisplayDialog("警告", "manifest不能为空!", "确定");
@@ -575,10 +635,9 @@ namespace IG.Editor.Res{
             //添加manifest
             InsertManifest(configs, manifestFilePath);
             //添加ab整包
-            InsertABPackConfig(configs, path);
+            InsertABPackConfig(configs, outDir);
             string json = JSONUtils.ObjectToJson(configs);
             File.WriteAllText(BuildSettingData.GetABBundleInfo(), json);
-            EditorUtility.ClearProgressBar();
         }
 
         private static void InsertManifest(List<AssetBundleConfig> configs, string manifestFilePath){
@@ -590,10 +649,10 @@ namespace IG.Editor.Res{
         }
 
         private static void InsertABPackConfig(List<AssetBundleConfig> configs, string path){
-            string            bundleName = BuildSettingData.GetPlatformABDirName();
-            string            filePath   = string.Format(FORMAT_PATH, path, bundleName);
+            string            platABDirName = AssetSystemHelper.GetPlatformABDirName(BuildSettingData.Instance.TargetPlat);
+            string            filePath   = string.Format(FORMAT_PATH, path, platABDirName);
             AssetBundleConfig abConfig   = new AssetBundleConfig();
-            abConfig.Name = bundleName;
+            abConfig.Name = platABDirName;
             BuildPipeline.GetCRCForAssetBundle(filePath, out abConfig.CRC);
             abConfig.Size = new FileInfo(filePath).Length;
             configs.Insert(0, abConfig);

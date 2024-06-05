@@ -38,9 +38,25 @@ namespace IG.Editor.Res{
         /// 获取到打包出的ab包路径
         /// </summary>
         /// <returns></returns>
-        public static string GetABOutFile(){ return GetPlatformPath() + "/" + GetPlatformABDirName(); }
+        public static string GetABOutFile(){ return GetPlatformPath() + "/" + AssetSystemHelper.GetPlatformABDirName(Instance.TargetPlat); }
 
-        public static string GetABBundleInfo(){ return GetPlatformPath() + "/" + GetPlatformABDirName() + "/" + Instance.ABInfoFile; }
+        /// <summary>
+        /// Bundle 信息输出目录
+        /// </summary>
+        /// <returns></returns>
+        public static string GetABBundleInfo(){ return GetPlatformPath() + "/" + AssetSystemHelper.GetPlatformABDirName(Instance.TargetPlat) + "/" + Instance.ABInfoFile; }
+
+        /// <summary>
+        /// 资源-bundle 映射表目录
+        /// </summary>
+        /// <returns></returns>
+        public static string GetABBundleMapInfo(){ return GetPlatformPath() + "/" + AssetSystemHelper.GetPlatformABDirName(Instance.TargetPlat) + "/" + Instance.ABPackResMap; }
+
+        /// <summary>
+        /// 总资源表目录
+        /// </summary>
+        /// <returns></returns>
+        public static string GetABTotalBundleInfo(){ return GetPlatformPath() + "/" + AssetSystemHelper.GetPlatformABDirName(Instance.TargetPlat) + "/" + Instance.ABTotalMap; }
 
         /// <summary>
         /// 获取平台路径
@@ -48,40 +64,18 @@ namespace IG.Editor.Res{
         /// <returns></returns>
         public static string GetPlatformPath(){
             string strReturnPlatformPath = "";
-            switch (Instance.TargetPlat){
-                case BuildTarget.StandaloneWindows64:
-                case BuildTarget.StandaloneWindows:
-                    strReturnPlatformPath = Application.streamingAssetsPath;
-                    break;
-                case BuildTarget.Android:
-                case BuildTarget.iOS:
-                    strReturnPlatformPath = Application.persistentDataPath;
-                    break;
-            }
-
+            // switch (Instance.TargetPlat){
+            //     case BuildTarget.StandaloneWindows64:
+            //     case BuildTarget.StandaloneWindows:
+            //         strReturnPlatformPath = Application.streamingAssetsPath;
+            //         break;
+            //     case BuildTarget.Android:
+            //     case BuildTarget.iOS:
+            //         strReturnPlatformPath = Application.persistentDataPath;
+            //         break;
+            // }
+            strReturnPlatformPath = $"{Application.dataPath}/../Builds";
             return strReturnPlatformPath;
-        }
-
-        /// <summary>
-        /// 获取平台名称
-        /// </summary>
-        /// <returns></returns>
-        public static string GetPlatformABDirName(){
-            string strReturnPlatformName = "";
-            switch (Instance.TargetPlat){
-                case BuildTarget.StandaloneWindows64:
-                case BuildTarget.StandaloneWindows:
-                    strReturnPlatformName = "PC";
-                    break;
-                case BuildTarget.iOS:
-                    strReturnPlatformName = "IOS";
-                    break;
-                case BuildTarget.Android:
-                    strReturnPlatformName = "Android";
-                    break;
-            }
-
-            return strReturnPlatformName;
         }
 
     #endregion
@@ -96,7 +90,8 @@ namespace IG.Editor.Res{
         public string ABResDir     = String.Empty;
         public string ABInfoFile   = "au_abinfo.table";
         public string ABPackResMap = "au_map.table"; //资源包和资源映射表
-        public string AB_MANIFEST => $"{GetPlatformABDirName()}.manifest";
+        public string ABTotalMap   = "au_total.table";
+        public string AB_MANIFEST => $"{AssetSystemHelper.GetPlatformABDirName(Instance.TargetPlat)}.manifest";
 
         /// <summary>
         /// 本地AB包

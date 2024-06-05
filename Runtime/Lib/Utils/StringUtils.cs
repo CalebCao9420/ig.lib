@@ -236,6 +236,40 @@ namespace IG.Runtime.Utils{
             return translate.ToString();
         }
 
+        public enum CutStrType{
+            Front, //裁剪前段,保留后段
+            Back,  //裁剪后段,保留前段
+        }
+        
+        public enum SubStrSelectType{
+            Front, //选从头开始
+            Back,  //选从尾开始
+        }
+
+        /// <summary>
+        /// 根据关键字裁剪
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="sign"></param>
+        /// <param name="cutStrType"></param>
+        /// <returns></returns>
+        public static string CutStrBySign(string str, string sign, CutStrType cutStrType,SubStrSelectType strSelectType = SubStrSelectType.Back){
+            int    index = 0;
+            string rel   = str;
+            switch (cutStrType){
+                case CutStrType.Front:
+                    index = strSelectType == SubStrSelectType.Back ? str.LastIndexOf(sign) : str.IndexOf(sign);
+                    rel   = str.Substring(index);
+                    break;
+                case CutStrType.Back:
+                    index = strSelectType == SubStrSelectType.Back ? str.LastIndexOf(sign) : str.IndexOf(sign);
+                    rel   = str.Substring(0, index + 1);
+                    break;
+            }
+
+            return rel;
+        }
+
         /// <summary>
         /// Sample apply,if need more  
         /// </summary>

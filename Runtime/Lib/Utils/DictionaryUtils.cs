@@ -54,13 +54,10 @@ namespace IG.Runtime.Utils{
         }
 
         public static void Readd<Tkey, Tvalue>(this Dictionary<Tkey, Tvalue> dic, Tkey key, Tvalue value){
-            if (!dic.ContainsKey(key)){
+            if (!dic.TryAdd(key, value)){
+                dic.Remove(key);
                 dic.Add(key, value);
-                return;
             }
-
-            dic.Remove(key);
-            dic.Add(key, value);
         }
     }
 }

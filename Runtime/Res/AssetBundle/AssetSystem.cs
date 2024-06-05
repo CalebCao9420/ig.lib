@@ -5,21 +5,23 @@ using System.Diagnostics;
 using System.IO;
 using IG.IO;
 using IG.Runtime.Common;
+using IG.Runtime.Extensions;
 using IG.Runtime.Log;
 using IG.Runtime.Utils;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.U2D;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace IG.AssetBundle{
     /// <summary>
     /// 资源系统
+    ///
+    /// 后续计划,
+    /// 1.Bundle做额外类型，内部有引用计数，方便计数<=0时卸载
+    /// 2.有周期性检查，每个周期检测引用计数<=0的没卸载的包，手动卸载(周期考虑是外部来还是内部自动，主要为防止因为这里卸载影响Main的帧率等)
     /// </summary>
-    public sealed class AssetSystem : SingletonAbs<AssetSystem>{
-        private static List<SpriteAtlas> SpriteData = new List<SpriteAtlas>();
-
+    public sealed partial class AssetSystem : SingletonAbs<AssetSystem>{
         /// <summary>
         /// Ab bundle manifest 资源名
         /// </summary>
@@ -33,132 +35,57 @@ namespace IG.AssetBundle{
 
         /// <summary>
         /// 资源总表
-        /// TODO:资源总表有修改，不走这里了
         /// </summary>
-        private AssetBundleManifest m_Manifest;
+        private AssetBundleManifest _manifest;
 
         /// <summary>
         /// 资源地址
         /// </summary>
-        private string m_AssetURL;
+        private string _assetURL;
 
         /// <summary>
         /// 资源包表 [键:资源包名 值:资源包]
         /// </summary>
-        private Dictionary<string, UnityEngine.AssetBundle> m_AssetBundleMap = new Dictionary<string, UnityEngine.AssetBundle>();
+        private readonly Dictionary<string, UnityEngine.AssetBundle> _assetBundleMap = new();
 
         /// <summary>
         /// 资源请求表[键:资源包名 值:资源请求]
         /// </summary>
-        private Dictionary<string, AssetBundleCreateRequest> m_RequestMap =
-            new Dictionary<string, AssetBundleCreateRequest>();
+        private readonly Dictionary<string, AssetBundleCreateRequest> _requestMap = new();
 
-        private Queue<LoadInfo> m_LoadQueue = new Queue<LoadInfo>();
+        private Queue<LoadInfo> _loadQueue = new();
 
         private static void CheckCoroutineObj(){
             // 提交协程处理
             if (CoroutineObj == null){
-                //TODO:
-                // GameObject singleMonoBehaviour = GameObject.Find("NetworkObj");
-                // if (singleMonoBehaviour != null){
-                //     CoroutineObj = singleMonoBehaviour.GetComponent<NotDestroy>();
-                // }
-                // else{
-                //     GameObject NetworkObj = new GameObject("NetworkObj");
-                //     CoroutineObj = NetworkObj.GetOrAddComponent<NotDestroy>();
-                // }
-            }
-        }
-
-        /// <summary>
-        /// 读取精灵文件
-        /// </summary>
-        /// <param name="path">Resources下资源路径</param>
-        /// <returns></returns>
-        // public Sprite LoadSprite(string ImageName){
-        //     int k = -1;
-        //
-        //     if (string.IsNullOrEmpty(ImageName)){
-        //         return null;
-        //     }
-        //
-        //     for (int i = 0; i < SpriteData.Count; i++){
-        //         if (SpriteData[i].SpriteDir.ContainsKey(ImageName)){
-        //             k = i;
-        //             break;
-        //         }
-        //     }
-        //
-        //     if (k == -1){
-        //         Debug.Log(ImageName + " is none");
-        //         return null;
-        //     }
-        //
-        //     return SpriteData[k].SpriteDir[ImageName];
-        // }
-
-        /// <summary>
-        /// 读取精灵文件
-        /// </summary>
-        /// <param name="path">Resources下资源路径</param>
-        /// <returns></returns>
-        public Sprite LoadSprite(string ImageName){
-            int k = -1;
-            if (string.IsNullOrEmpty(ImageName)){
-                return null;
-            }
-
-            for (int i = 0; i < SpriteData.Count; i++){
-                if (SpriteData[i].GetSprite(ImageName) != null){
-                    k = i;
-                    break;
+                GameObject singleMonoBehaviour = GameObject.Find(SingletonManager.SINGLE_MONO_NAME);
+                if (singleMonoBehaviour != null){
+                    CoroutineObj = singleMonoBehaviour.GetOrAddComponent<NotDestroy>();
                 }
             }
-
-            if (k == -1){
-                Debug.Log(ImageName + " is none");
-                return null;
-            }
-
-            return SpriteData[k].GetSprite(ImageName);
         }
-
-        public static void OnDestroy(){ SpriteData.Clear(); }
-
-        ///// 
-        //AssetBundle 
-        /////
 
         /// <summary>
         /// 初始化
         /// </summary>
         /// <param name="assetURL">资源地址</param>
-        /// <param name="manifest">资源包</param>
-        public static void Init(string assetURL, string manifest){
+        /// <param name="mainBundleName">资源包</param>
+        public static void Setup(AssetSystemConfig config){
+            string assetURL       = config.URL;
+            string mainBundleName = config.MainBundleName;
             Clear();
-            Instance.m_AssetURL = assetURL;
-            string path = GetPath(manifest);
-
-            //TODO:
-            Debug.Log($"初始化 AssetSystem!");
-            if (File.Exists(path)){
-                //TODO:
-                Debug.Log($"AssetSystem! 检测到资源地址! :{path}");
-                UnityEngine.AssetBundle assetBundle = UnityEngine.AssetBundle.LoadFromFile(path);
-                //TODO:
-                Debug.Log($"AssetSystem! 加载assetbundle! :{assetBundle}");
-                // Instance.m_Manifest = assetBundle.LoadAsset<AssetBundleManifest>(ASSET_MANIFEST);
-                Instance.m_Manifest = assetBundle.LoadAsset<AssetBundleManifest>(ASSET_MANIFEST);
-                //TODO:
-                Debug.Log($"AssetSystem! Manifest! :{Instance.m_Manifest}");
-                Add(manifest, assetBundle);
-                //TODO:
-                Debug.Log($"AssetSystem! 初始化成功! ");
+            Instance._assetURL = assetURL;
+            string mainPkgPath = GetPath(mainBundleName);
+            // mainPkgPath = JudgeBundleFixSuffix(mainPkgPath);
+            if (File.Exists(mainPkgPath)){
+                UnityEngine.AssetBundle assetBundle = UnityEngine.AssetBundle.LoadFromFile(mainPkgPath);
+                Instance._manifest = assetBundle.LoadAsset<AssetBundleManifest>(ASSET_MANIFEST);
+                Add(mainBundleName, assetBundle);
+                LogHelper.Log($"AssetSystem! 初始化成功!".GreenColor());
             }
-
-            //init sprite atlas
-            //TODO:测试Hotfix暂时先隐藏，SpriteAtlas 晚点再加回来
-            // Instance.InitAtlasSprite();
+            else{
+                LogHelper.Log($"AssetSystem初始化错误,{mainBundleName} 不存在!!", LogType.Error);
+            }
         }
 
         /// <summary>
@@ -166,7 +93,7 @@ namespace IG.AssetBundle{
         /// </summary>
         /// <param name="bundleName">资源包名</param>
         /// <param name="assetBundle">资源包</param>
-        public static void Add(string bundleName, UnityEngine.AssetBundle assetBundle){ Instance.m_AssetBundleMap[bundleName] = assetBundle; }
+        public static void Add(string bundleName, UnityEngine.AssetBundle assetBundle){ Instance._assetBundleMap[bundleName] = assetBundle; }
 
         /// <summary>
         /// 移除资源包
@@ -175,7 +102,7 @@ namespace IG.AssetBundle{
         /// <param name="unload">是否释放资源</param>
         public static void Remove(string bundleName, bool unload = true){
             UnityEngine.AssetBundle assetBundle = null;
-            if (!Instance.m_AssetBundleMap.TryGetValue(bundleName, out assetBundle)){
+            if (!Instance._assetBundleMap.TryGetValue(bundleName, out assetBundle)){
                 return;
             }
 
@@ -183,30 +110,31 @@ namespace IG.AssetBundle{
                 assetBundle.Unload(true);
             }
 
-            Instance.m_AssetBundleMap.Remove(bundleName);
+            Instance._assetBundleMap.Remove(bundleName);
         }
 
         /// <summary>
         /// 获取资源路径
-        /// TODO: 注意区分Local资源和Server资源
         /// </summary>
-        /// <param name="bundleName">资源名</param>
-        /// <returns></returns>
-        private static string GetPath(string bundleName){
-#if UNITY_EDITOR && !LOCAL_AB
-            // return string.Format(FORMAT_PATH, Instance.m_AssetURL, bundleName);
-            string url = string.Format(FORMAT_PATH, Instance.m_AssetURL, bundleName);
+        /// <param name="sourceName">资源名</param>
+        private static string GetPath(string sourceName){
+#if UNITY_EDITOR
+            return string.Format(FORMAT_PATH, Instance._assetURL, sourceName);
 #else
-         string url = Instance.m_AssetURL + bundleName;
+         string url = Instance._assetURL + bundleName;
         string key;
         FileInfo fileInfo;
         DownloadSystem.HasCached(url, out key, out fileInfo);
         return fileInfo.FullName;
-        
-        // string url = string.Format(FORMAT_PATH, Instance.m_AssetURL, bundleName);
-        // return url;
 #endif
-            return string.Format(FORMAT_PATH, Instance.m_AssetURL, bundleName);
+        }
+
+        private static string JudgeBundleFixSuffix(string path){
+            if (!path.Contains(PathConst.Suffix.BUNDLE)){
+                path += PathConst.Suffix.BUNDLE;
+            }
+
+            return path;
         }
 
         /// <summary>
@@ -218,34 +146,28 @@ namespace IG.AssetBundle{
         public static UnityEngine.AssetBundle Get(string bundleName){
             UnityEngine.AssetBundle assetBundle = null;
             string                  path        = null;
-            if (Instance.m_AssetBundleMap.TryGetValue(bundleName, out assetBundle)){
+            if (Instance._assetBundleMap.TryGetValue(bundleName, out assetBundle)){
                 return assetBundle;
             }
-            else if (Instance.m_Manifest != null){
-                // string[] dependencies = Instance.m_Manifest.GetAllDependencies(bundleName);
-                string[] dependencies = Instance.m_Manifest.GetDirectDependencies(bundleName);
+            else if (Instance._manifest != null){
+                string[] dependencies = Instance._manifest.GetDirectDependencies(bundleName);
                 for (int i = 0; i < dependencies.Length; ++i){
                     string dependence = dependencies[i];
-                    // Get(dependence);
-                    //TODO:依赖已加载的忽略即可，防止重复嵌套加载
-                    if (!Instance.m_AssetBundleMap.ContainsKey(dependence)){
+                    if (!Instance._assetBundleMap.ContainsKey(dependence)){
                         path = GetPath(dependence);
                         if (!File.Exists(path)){
-                            // Debug.LogError(string.Format(LOG_GET, path));
+                            LogHelper.Log(string.Format(LOG_GET, path), LogType.Error);
                             return null;
                         }
 
                         assetBundle = UnityEngine.AssetBundle.LoadFromFile(path);
                         Add(dependence, assetBundle);
                     }
-                    // else{
-                    //     Get(dependence);
-                    // }
                 }
 
                 path = GetPath(bundleName);
                 if (!File.Exists(path)){
-                    // Debug.LogError(string.Format(LOG_GET, path));
+                    LogHelper.Log(string.Format(LOG_GET, path), LogType.Error);
                     return null;
                 }
 
@@ -263,7 +185,7 @@ namespace IG.AssetBundle{
         /// <param name="onLoadComplete">加载回调</param>
         public static void GetAsync(string bundleName, Action<UnityEngine.AssetBundle> onLoadComplete){
             UnityEngine.AssetBundle assetBundle = null;
-            if (Instance.m_AssetBundleMap.TryGetValue(bundleName, out assetBundle)){
+            if (Instance._assetBundleMap.TryGetValue(bundleName, out assetBundle)){
                 if (onLoadComplete != null){
                     onLoadComplete.Invoke(assetBundle);
                 }
@@ -271,7 +193,6 @@ namespace IG.AssetBundle{
             else{
                 List<string> dependenList = new List<string>();
                 GetAllDependencies(bundleName, dependenList);
-                //TODO:临时修改的携程开启策略
                 CheckCoroutineObj();
                 //游戏主控Mono 去开启这个携程
                 CoroutineObj.StartCoroutine(
@@ -279,7 +200,7 @@ namespace IG.AssetBundle{
                                                                      dependenList,
                                                                      () => {
                                                                          try{
-                                                                             Instance.m_AssetBundleMap.TryGetValue(bundleName, out assetBundle);
+                                                                             Instance._assetBundleMap.TryGetValue(bundleName, out assetBundle);
                                                                              onLoadComplete.Invoke(assetBundle);
                                                                          }
                                                                          catch (Exception e){
@@ -297,11 +218,11 @@ namespace IG.AssetBundle{
         /// <param name="bundleName">资源包名</param>
         /// <param name="dependenList">依赖列表</param>
         private static void GetAllDependencies(string bundleName, List<string> dependenList){
-            if (Instance.m_Manifest == null){
+            if (Instance._manifest == null){
                 return;
             }
 
-            string[] dependencies = Instance.m_Manifest.GetAllDependencies(bundleName);
+            string[] dependencies = Instance._manifest.GetAllDependencies(bundleName);
             for (int i = 0; i < dependencies.Length; ++i){
                 string dependence = dependencies[i];
                 if (dependenList.Contains(dependence)){
@@ -324,13 +245,13 @@ namespace IG.AssetBundle{
             for (int i = 0; i < bundleList.Count; ++i){
                 string                  bundleName  = bundleList[i];
                 UnityEngine.AssetBundle assetBundle = null;
-                if (Instance.m_AssetBundleMap.TryGetValue(bundleName, out assetBundle)){
+                if (Instance._assetBundleMap.TryGetValue(bundleName, out assetBundle)){
                     continue; //已经下载过了
                 }
 
                 //检测是否加载中
                 AssetBundleCreateRequest request = null;
-                if (Instance.m_RequestMap.TryGetValue(bundleName, out request)){
+                if (Instance._requestMap.TryGetValue(bundleName, out request)){
                     while (!request.isDone){
                         yield return new WaitForEndOfFrame();
                     }
@@ -346,14 +267,14 @@ namespace IG.AssetBundle{
                     }
 
                     //创建加载任务
-                    request                           = UnityEngine.AssetBundle.LoadFromFileAsync(path);
-                    Instance.m_RequestMap[bundleName] = request;
+                    request = UnityEngine.AssetBundle.LoadFromFileAsync(path);
+                    Instance._requestMap.Readd(bundleName, request);
                     yield return request;
 
                     //执行完毕回调
                     assetBundle = request.assetBundle;
                     Add(bundleName, assetBundle);
-                    Instance.m_RequestMap.Remove(bundleName);
+                    Instance._requestMap.Remove(bundleName);
                 }
             }
 
@@ -369,66 +290,27 @@ namespace IG.AssetBundle{
         }
 
         /// <summary>
-        /// 通过中间名，简介指定Editor文件夹
-        /// </summary>
-        /// <param name="bundleName"></param>
-        /// <param name="name"></param>
-        /// <param name="median"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        //     public static UnityEngine.Object LoadByMedian(string bundleName, string name = null, string median = null, Type type = null){
-        // #if UNITY_EDITOR && !LOCAL_AB
-        //         string path = string.Empty;
-        //         string suffix = type == null ? String.Empty : s_TypeMap[type];
-        //         bundleName = bundleName.Replace(PathConfig.Suffix.BUNDLE, "");
-        //         path = PathConfig.Path.BaseABPath + bundleName + median + name + suffix;
-        //         UnityEngine.Object asset = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
-        //         if (asset == null){
-        //             Debug.LogError(string.Format(LOG_LOAD, path));
-        //         }
-        //
-        //         return asset;
-        // #else
-        //     return Load(bundleName,name);
-        // #endif
-        //     }
-
-        /// <summary>
         /// 加载资源(资源类型明确)
         /// </summary>
         /// <param name="bundleName"></param>
         /// <param name="name"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T Load<T>(string bundleName, string name = null) where T : Object{
-            var strs = StringUtils.SplitBySign('/', bundleName);
-            if (strs != null){
-                for (int i = 0; i < strs.Length; i++){
-                    strs[i] = strs[i].ToLower();
-                    UnityEngine.AssetBundle bundle = Get(strs[i]);
-                    //正常情况无法加载，连URL一起转一次MD5,查找本地资源
-                    if (bundle == null){
-                        //TODO:
-                        LogHelper.Log($"[无法获取确认一下]:{bundleName}", LogType.Error);
-                        // string url = PathConfig.ServerRelated.SERVER_CONFIG.resource +
-                        //              PathConfig.Path.URL_RESOURCE_SUB                +
-                        //              PathConfig.Path.BUNDLE_PATH                     +
-                        //              PathConfig.Path.PLATFORM                        +
-                        //              bundleName;
-                        // var fileName = FileManage.StringToMD5(url.ToLower());
-                        // bundle = Get(fileName);
-                    }
-
-                    if (name == null){
-                        name = bundleName.Substring(bundleName.LastIndexOf('/') + 1);
-                        name = name.Remove(name.LastIndexOf('.'));
-                    }
-
-                    if (bundle.Contains(name)){
-                        return bundle.LoadAsset<T>(name);
-                    }
-                }
+        public static T Load<T>(string path) where T : Object{
+            HookBundleAndAssetName(path, out string bundleName, out string name);
+            UnityEngine.AssetBundle bundle    = Get(bundleName);
+            //正常情况无法加载，连URL一起转一次MD5,查找本地资源
+            if (bundle == null){
+                LogHelper.Log($"[无法获取确认一下]:{bundleName}", LogType.Error);
+                string url      = Instance._assetURL + AssetSystemHelper.GetPlatformABDirName() + bundleName;
+                var    fileName = FileManager.StringToMD5(url.ToLower());
+                bundle = Get(fileName);
             }
+
+            if (bundle.Contains(name)){
+                return bundle.LoadAsset<T>(name);
+            }   
+
 
             return null;
         }
@@ -440,19 +322,18 @@ namespace IG.AssetBundle{
         /// <param name="name">资源名</param>
         /// <param name="type">资源类型</param>
         /// <returns>返回资源</returns>
-        public static Object Load(string bundleName, string name = null, Type type = null){
+        public static Object Load(string path, Type type = null){
+            HookBundleAndAssetName(path, out string bundleName, out string name);
             if (type == null){
-                type = GetAssetType(ref name);
+                type = GetAssetType(ref path);
             }
 
-            if (!bundleName.Contains(PathConst.Suffix.BUNDLE)){
-                bundleName += PathConst.Suffix.BUNDLE;
+            if (!path.Contains(PathConst.Suffix.BUNDLE)){
+                path += PathConst.Suffix.BUNDLE;
             }
 
-#if UNITY_EDITOR && !LOCAL_AB
+#if UNITY_EDITOR
             //如果Editor没有Local_AB就只有path
-            string path = name;
-            //  ShopTools.InitInfo();
             string suffix = type != null ? PathConst.S_TypeMap[type] : String.Empty;
             if (!path.Contains(suffix)){
                 path += suffix;
@@ -465,37 +346,7 @@ namespace IG.AssetBundle{
 
             return asset;
 #else
-        //TODO:测试使用，正是项目修改了依赖try部分就不需要了，只留catch部分
-        try{
-            var strs = StringUtils.SplitBySign('/', bundleName);
-            if (strs != null){
-                for (int i = 0; i < strs.Length; i++){
-                    strs[i] = strs[i].ToLower();
-                    UnityEngine.AssetBundle bundle = Get(strs[i]);
-                    //正常情况无法加载，连URL一起转一次MD5,查找本地资源
-                    // if (bundle == null){
-                    //     string url = PathConfig.ServerRelated.SERVER_CONFIG.resource +
-                    //                  PathConfig.Path.URL_RESOURCE_SUB +
-                    //                  PathConfig.Path.BUNDLE_PATH +
-                    //                  PathConfig.Path.PLATFORM +
-                    //                  bundleName;
-                    //     var fileName = FileManage.StringToMD5(url.ToLower());
-                    //     bundle = Get(fileName);
-                    // }
-
-                    if (name == null){
-                        name = bundleName.Substring(bundleName.LastIndexOf('/') + 1);
-                        name = name.Remove(name.LastIndexOf('.'));
-                    }
-
-                    if (bundle.Contains(name)){
-                        return bundle.LoadAsset(name, type);
-                    }
-                }
-            }
-        }
-        catch (Exception e){
-            if (bundleName.Contains(PathConst.Suffix.PREFAB)){
+        if (bundleName.Contains(PathConst.Suffix.PREFAB)){
                 bundleName = StringUtils.CutSuffix(bundleName);
             }
 
@@ -506,15 +357,11 @@ namespace IG.AssetBundle{
             bundleName = bundleName.ToLower();
             UnityEngine.AssetBundle assetBundle = Get(bundleName);
             //正常情况无法加载，连URL一起转一次MD5,查找本地资源
-            // if (assetBundle == null){
-            //     string url = PathConfig.ServerRelated.SERVER_CONFIG.resource +
-            //                  PathConfig.Path.URL_RESOURCE_SUB +
-            //                  PathConfig.Path.BUNDLE_PATH +
-            //                  PathConfig.Path.PLATFORM +
-            //                  bundleName;
-            //     var fileName = FileManage.StringToMD5(url.ToLower());
-            //     assetBundle = Get(fileName);
-            // }
+            if (assetBundle == null){
+                string url = Instance._assetURL + AssetSystemHelper.GetPlatformABDirName() + bundleName;
+                var    fileName = FileManager.StringToMD5(url.ToLower());
+                assetBundle = Get(fileName);
+            }
 
             if (name == null){
                 name = bundleName.Substring(bundleName.LastIndexOf('/') + 1);
@@ -523,9 +370,6 @@ namespace IG.AssetBundle{
 
             name = name.ToLower();
             return assetBundle.LoadAsset(name, type);
-        }
-
-        return null;
 #endif
         }
 
@@ -538,12 +382,8 @@ namespace IG.AssetBundle{
         /// <param name="type">资源类型</param>
         /// <param name="arg">加载参数</param>
         /// <returns>返回加载请求</returns>
-        public static LoadInfo LoadAsync(
-            Action<object, object> loadComplete,
-            string                 bundleName,
-            string                 name = null,
-            Type                   type = null,
-            object                 arg  = null){
+        public static LoadInfo LoadAsync(Action<object, object> loadComplete, string path, Type type = null, object arg = null){
+            HookBundleAndAssetName(path, out string bundleName, out string name);
             // 检测回调
             if (loadComplete == null){
                 Debug.LogError(LOG_NULL);
@@ -566,9 +406,7 @@ namespace IG.AssetBundle{
                                                   Type         = type,
                                                   Arg          = arg
                                               };
-#if UNITY_EDITOR && !LOCAL_AB
-            //如果Editor没有Local_AB就只有path
-            string path  = name;
+#if UNITY_EDITOR
             Object asset = AssetDatabase.LoadAssetAtPath(path, type);
             if (asset == null){
                 Debug.LogError(string.Format(LOG_LOAD, path));
@@ -599,7 +437,7 @@ namespace IG.AssetBundle{
         /// <param name="suffix"></param>
         /// <returns></returns>
         public static Object[] LoadAll(string bundleName, Type type = null, string suffix = null){
-#if UNITY_EDITOR && !LOCAL_AB
+#if UNITY_EDITOR
             //如果Editor没有Local_AB就只有path = bundleName
             string path = bundleName.Replace(PathConst.Suffix.BUNDLE, string.Empty);
             if (!suffix.Contains("*")){ suffix = $"*{suffix}"; }
@@ -617,26 +455,16 @@ namespace IG.AssetBundle{
 
             return assets;
 #else
-                // bundleName += PathConfig.Suffix.BUNDLE;
-                // bundleName = bundleName.ToLower();
-                // AssetBundle assetBundle = Get(bundleName);
-                // return type == null ? assetBundle.LoadAllAssets() : assetBundle.LoadAllAssets(type);
+         bundleName = bundleName.ToLower();
+            UnityEngine.AssetBundle assetBundle = Get(bundleName);
+            //正常情况无法加载，连URL一起转一次MD5,查找本地资源
+            if (assetBundle == null){
+                string url = Instance._assetURL + AssetSystemHelper.GetPlatformABDirName() + bundleName;
+                var    fileName = FileManager.StringToMD5(url.ToLower());
+                assetBundle = Get(fileName);
+            }
 
-        // bundleName += PathConfig.Suffix.BUNDLE;
-        bundleName = bundleName.ToLower();
-        UnityEngine.AssetBundle assetBundle = Get(bundleName);
-        //正常情况无法加载，连URL一起转一次MD5,查找本地资源
-        if (assetBundle == null){
-            // string url = PathConfig.ServerRelated.SERVER_CONFIG.resource +
-            //              PathConfig.Path.URL_RESOURCE_SUB +
-            //              PathConfig.Path.BUNDLE_PATH +
-            //              PathConfig.Path.PLATFORM +
-            //              bundleName;
-            // var fileName = FileManage.StringToMD5(url.ToLower());
-            // assetBundle = Get(fileName);
-        }
-
-        return type == null ? assetBundle.LoadAllAssets() : assetBundle.LoadAllAssets(type);
+            return type == null ? assetBundle.LoadAllAssets() : assetBundle.LoadAllAssets(type);
 #endif
         }
 
@@ -648,11 +476,7 @@ namespace IG.AssetBundle{
         /// <param name="type">资源类型</param>
         /// <param name="arg">加载参数</param>
         /// <returns>返回加载请求</returns>
-        public static LoadInfo LoadAllAsync(
-            Action<object, object> loadCallback,
-            string                 bundleName,
-            Type                   type = null,
-            object                 arg  = null){
+        public static LoadInfo LoadAllAsync(Action<object, object> loadCallback, string bundleName, Type type = null, object arg = null){
             if (loadCallback == null){
                 Debug.LogError(LOG_NULL);
                 return null;
@@ -688,24 +512,23 @@ namespace IG.AssetBundle{
         /// <param name="bundleName">资源包名</param>
         /// <param name="unloadAll">是否卸载全部资源</param>
         public static void Unload(string bundleName, bool unloadAll){
-            UnityEngine.AssetBundle assetBundle = null;
-            if (!Instance.m_AssetBundleMap.TryGetValue(bundleName, out assetBundle)){
+            if (!Instance._assetBundleMap.TryGetValue(bundleName, out UnityEngine.AssetBundle assetBundle)){
                 return;
             }
 
             assetBundle.Unload(unloadAll);
-            Instance.m_AssetBundleMap.Remove(bundleName);
+            Instance._assetBundleMap.Remove(bundleName);
         }
 
         /// <summary>
         /// 清除所有资源
         /// </summary>
         public static void Clear(){
-            foreach (UnityEngine.AssetBundle assetBundle in Instance.m_AssetBundleMap.Values){
+            foreach (UnityEngine.AssetBundle assetBundle in Instance._assetBundleMap.Values){
                 assetBundle.Unload(true);
             }
 
-            Instance.m_AssetBundleMap.Clear();
+            Instance._assetBundleMap.Clear();
         }
 
         /// <summary>
@@ -745,8 +568,8 @@ namespace IG.AssetBundle{
             loadInfo.Request = request;
             yield return request;
             loadInfo.LoadCallback.Invoke(isLoadAll ? (object)request.allAssets : request.asset, loadInfo.Arg);
-            if (Instance.m_LoadQueue.Count > 0){
-                loadInfo = Instance.m_LoadQueue.Dequeue();
+            if (Instance._loadQueue.Count > 0){
+                loadInfo = Instance._loadQueue.Dequeue();
                 StartLoad(loadInfo);
             }
         }
@@ -771,6 +594,13 @@ namespace IG.AssetBundle{
             return type;
         }
 
+        public static void HookBundleAndAssetName(string path, out string bundle, out string name){
+            int index = path.LastIndexOf('/');
+            bundle = path.Substring(0, index);
+            bundle = JudgeBundleFixSuffix(bundle);
+            name   = path.Substring(index + 1);
+        }
+
         /// <summary>
         /// 使用于Editor模式下，加载指定目录下所有文件
         /// </summary>
@@ -778,7 +608,7 @@ namespace IG.AssetBundle{
         /// <param name="bundleName"></param>
         /// <returns></returns>
         public static T[] LoadAllAssetAtDirectory<T>(string path) where T : Object{
-#if UNITY_EDITOR && !LOCAL_AB
+#if UNITY_EDITOR 
             //如果Editor没有Local_AB就只有path
             T[] assets = null;
             path += "/";

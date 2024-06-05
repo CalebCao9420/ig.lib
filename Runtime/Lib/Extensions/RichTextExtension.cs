@@ -6,7 +6,8 @@
         public static string AliceblueColor(this  string self)           { return self.HEXColor("f0f8ff"); }
         public static string AquaColor(this       string self)           { return self.HEXColor("00ffff"); }
         public static string AquaMarineColor(this string self)           { return self.HEXColor("7fffd4"); }
-        public static string BlueColor(this       string self)           { return self.HEXColor("#0000FF"); }
+        public static string CyanColor(this       string self)           { return self.HEXColor("00FFFF");}
+        public static string BlueColor(this       string self)           { return self.HEXColor("0000FF"); }
         public static string YellowColor(this     string self)           { return SystemColor(self, "yellow"); }
         public static string GreenColor(this      string self)           { return SystemColor(self, "green"); }
         public static string BlackColor(this      string self)           { return SystemColor(self, "black"); }

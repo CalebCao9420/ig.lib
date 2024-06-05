@@ -78,7 +78,7 @@ namespace IG.Pool{
 
             Object result = null;
             HookSubPool(resourceType, path, out ISubPool subPool);
-            result = subPool.Spawn(path);
+            result = subPool.Spawn();
             if (result == null){
                 this.Log($"Spawn obj error = {result} , sourceType = {resourceType} ,name = {path}", LogType.Error);
                 // return this.Spawn(resourceType, name, parent, isActive);

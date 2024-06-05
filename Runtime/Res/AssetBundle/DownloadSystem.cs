@@ -13,6 +13,7 @@ namespace IG.AssetBundle{
     /// </summary>
     public sealed class DownloadSystem : SingletonAbs<DownloadSystem>{
         public const string DOWNLOAD_SYSTEM = "DownloadSystem";
+
         /// <summary>
         /// 下载超时尽可能长即可
         /// -1
@@ -44,7 +45,7 @@ namespace IG.AssetBundle{
         /// 初始化下载系统
         /// </summary>
         /// <param name="cachePath">缓存路径</param>
-        public static void Init(string cachePath){ CACHE_PATH = cachePath; }
+        public static void Setup(string cachePath){ CACHE_PATH = cachePath; }
 
         /// <summary>
         /// 下载
@@ -235,7 +236,10 @@ namespace IG.AssetBundle{
             yield return downloadInfo.Request.SendWebRequest();
 
             //如果发生网络错误
-            if (!string.IsNullOrEmpty(downloadInfo.Request.error) || downloadInfo.Request.isNetworkError || downloadInfo.Request.isHttpError){
+            if (!string.IsNullOrEmpty(downloadInfo.Request.error)                     || //
+                downloadInfo.Request.result == UnityWebRequest.Result.ConnectionError || //
+                downloadInfo.Request.result == UnityWebRequest.Result.ProtocolError)     //
+            {
                 Debug.LogError("下载错误：" + downloadInfo.Request.error + " : " + downloadInfo.Url);
                 s_DownloadMap.Remove(downloadInfo.Url);
             }

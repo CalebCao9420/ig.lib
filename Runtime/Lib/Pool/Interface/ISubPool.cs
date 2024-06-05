@@ -75,12 +75,12 @@ namespace IG{
     public delegate void SubPoolEvent(UnityEngine.Object obj);
 
     public interface ISubPool{
-        string             Name      { get; }
-        string             SourcePath{ get; }
-        PoolResourceType   PoolType  { get; }
+        string             Name    { get; }
+        string             Path    { get; }
+        PoolResourceType   PoolType{ get; }
         void               Recycle(UnityEngine.Object obj);
         void               Clear(bool                 cleanMemory = false);
-        UnityEngine.Object Spawn(string               name);
-        bool               SpawnAsync(AsyncReqParam   param);
+        UnityEngine.Object Spawn();
+        bool               SpawnAsync(AsyncReqParam param);
     }
 }
