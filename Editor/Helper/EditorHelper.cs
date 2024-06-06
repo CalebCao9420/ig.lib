@@ -28,6 +28,7 @@ namespace IG.Editor.Helper{
 
         public static string HasTitleSelectFolderPathHorizontal(string title, string content, float width = 100.0f, float height = 100f){
             string rel = string.Empty;
+            EditorGUILayout.LabelField(title, GUILayout.Width(width), GUILayout.Height(height));
             HorizontalPair(() => rel = HasTitleSelectFolderPath(title, content, width, height));
             return rel;
         }

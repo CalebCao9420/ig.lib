@@ -121,7 +121,7 @@ namespace IG.AssetBundle{
 #if UNITY_EDITOR
             return string.Format(FORMAT_PATH, Instance._assetURL, sourceName);
 #else
-         string url = Instance._assetURL + bundleName;
+         string url = Instance._assetURL + sourceName;
         string key;
         FileInfo fileInfo;
         DownloadSystem.HasCached(url, out key, out fileInfo);
@@ -144,13 +144,12 @@ namespace IG.AssetBundle{
         /// <param name="bundleName">资源包名</param>
         /// <returns>返回资源包</returns>
         public static UnityEngine.AssetBundle Get(string bundleName){
-            UnityEngine.AssetBundle assetBundle = null;
-            string                  path        = null;
-            if (Instance._assetBundleMap.TryGetValue(bundleName, out assetBundle)){
+            if (Instance._assetBundleMap.TryGetValue(bundleName, out var assetBundle)){
                 return assetBundle;
             }
             else if (Instance._manifest != null){
                 string[] dependencies = Instance._manifest.GetDirectDependencies(bundleName);
+                string   path         = null;
                 for (int i = 0; i < dependencies.Length; ++i){
                     string dependence = dependencies[i];
                     if (!Instance._assetBundleMap.ContainsKey(dependence)){
@@ -244,14 +243,12 @@ namespace IG.AssetBundle{
         private static IEnumerator LoadAssetBundleCoroutine(List<string> bundleList, Action onLoadComplete){
             for (int i = 0; i < bundleList.Count; ++i){
                 string                  bundleName  = bundleList[i];
-                UnityEngine.AssetBundle assetBundle = null;
-                if (Instance._assetBundleMap.TryGetValue(bundleName, out assetBundle)){
+                if (Instance._assetBundleMap.TryGetValue(bundleName, out var assetBundle)){
                     continue; //已经下载过了
                 }
 
                 //检测是否加载中
-                AssetBundleCreateRequest request = null;
-                if (Instance._requestMap.TryGetValue(bundleName, out request)){
+                if (Instance._requestMap.TryGetValue(bundleName, out var request)){
                     while (!request.isDone){
                         yield return new WaitForEndOfFrame();
                     }
@@ -328,9 +325,9 @@ namespace IG.AssetBundle{
                 type = GetAssetType(ref path);
             }
 
-            if (!path.Contains(PathConst.Suffix.BUNDLE)){
-                path += PathConst.Suffix.BUNDLE;
-            }
+            // if (!path.Contains(PathConst.Suffix.BUNDLE)){
+            //     path += PathConst.Suffix.BUNDLE;
+            // }
 
 #if UNITY_EDITOR
             //如果Editor没有Local_AB就只有path
@@ -415,9 +412,9 @@ namespace IG.AssetBundle{
                 loadComplete.Invoke(asset, loadInfo.Arg);
             }
 #else
-        if (Instance.m_LoadQueue.Count > 0)
+        if (Instance._loadQueue.Count > 0)
         {
-            Instance.m_LoadQueue.Enqueue(loadInfo);
+            Instance._loadQueue.Enqueue(loadInfo);
         }
         else
         {
@@ -494,9 +491,9 @@ namespace IG.AssetBundle{
                 loadCallback.Invoke(assets, loadInfo.Arg);
             }
 #else
-        if (Instance.m_LoadQueue.Count > 0)
+        if (Instance._loadQueue.Count > 0)
         {
-            Instance.m_LoadQueue.Enqueue(loadInfo);
+            Instance._loadQueue.Enqueue(loadInfo);
         }
         else
         {
@@ -595,6 +592,7 @@ namespace IG.AssetBundle{
         }
 
         public static void HookBundleAndAssetName(string path, out string bundle, out string name){
+            path = path.ToLower();
             int index = path.LastIndexOf('/');
             bundle = path.Substring(0, index);
             bundle = JudgeBundleFixSuffix(bundle);
