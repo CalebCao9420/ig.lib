@@ -1,8 +1,12 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace IG{
+#if UNITY_EDITOR
+    using UnityEditor;
+#endif
+
     public static class AssetSystemHelper{
+#if UNITY_EDITOR
         public static string GetPlatformABDirName(BuildTarget buildTarget){
             switch (buildTarget){
                 case BuildTarget.StandaloneWindows64:
@@ -13,6 +17,7 @@ namespace IG{
                 default:                  return string.Empty;
             }
         }
+#endif
 
         public static string GetPlatformABDirName(){
             RuntimePlatform platform = RuntimePlatform.WindowsPlayer;
