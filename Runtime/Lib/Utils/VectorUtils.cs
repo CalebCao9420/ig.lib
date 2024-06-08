@@ -4,6 +4,11 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace IG.Runtime.Utils{
+    public enum VectorType{
+        XY = 0,
+        XZ = 1,
+    }
+
     public static class VectorUtils{
         /// <summary>
         /// 两个点的角度
@@ -83,13 +88,29 @@ namespace IG.Runtime.Utils{
         /// <param name="radiusX"></param>
         /// <param name="radiusY"></param>
         /// <returns></returns>
-        public static Vector3[] GetCircle(int vertexCount, float radiusX, float radiusY){
+        public static Vector3[] GetCircle(int vertexCount, float radiusX, float radiusY, VectorType vectorType = VectorType.XY){
             if (vertexCount <= 3){
                 Debug.LogWarning($"Get circle vertex error!please check it!");
             }
 
             Vector3[] rel = new Vector3[vertexCount];
-            return GetCircle(rel, radiusX, radiusY);
+            return GetCircle(rel, radiusX, radiusY, vectorType);
+        }
+
+        /// <summary>
+        /// 根据顶点数量和x与y轴的半径获取圆的点位
+        /// </summary>
+        /// <param name="vertexCount"></param>
+        /// <param name="radiusX"></param>
+        /// <param name="radiusY"></param>
+        /// <returns></returns>
+        public static Vector3[] GetCircle(Vector3 target, int vertexCount, float radiusX, float radiusY, VectorType vectorType = VectorType.XY){
+            if (vertexCount <= 3){
+                Debug.LogWarning($"Get circle vertex error!please check it!");
+            }
+
+            Vector3[] rel = new Vector3[vertexCount];
+            return GetCircle(target, rel, radiusX, radiusY, vectorType);
         }
 
         /// <summary>
@@ -99,7 +120,16 @@ namespace IG.Runtime.Utils{
         /// <param name="radiusX"></param>
         /// <param name="radiusY"></param>
         /// <returns></returns>
-        public static Vector3[] GetCircle(Vector3[] ver, float radiusX, float radiusY){
+        public static Vector3[] GetCircle(Vector3[] ver, float radiusX, float radiusY, VectorType vectorType = VectorType.XY){ return GetCircle(Vector3.zero, ver, radiusX, radiusY, vectorType); }
+
+        /// <summary>
+        /// 根据缓存数组长度获取圆点位
+        /// </summary>
+        /// <param name="ver"></param>
+        /// <param name="radiusX"></param>
+        /// <param name="radiusY"></param>
+        /// <returns></returns>
+        public static Vector3[] GetCircle(Vector3 target, Vector3[] ver, float radiusX, float radiusY, VectorType vectorType = VectorType.XY){
             if (ver == null){
                 Debug.LogWarning($"Circle cache vertex can not be null!");
                 ver = new Vector3[10];
@@ -117,7 +147,9 @@ namespace IG.Runtime.Utils{
             for (int i = 0; i < vertices_count; ++i){
                 float cosA = Mathf.Cos(angleCur);
                 float sinA = Mathf.Sin(angleCur);
-                ver[i]   =  new Vector2(radiusX * cosA, radiusY * sinA);
+                float x    = radiusX * cosA;
+                float yOrZ = radiusY * sinA;
+                ver[i]   =  (vectorType == VectorType.XY ? new Vector3(x, yOrZ, 0) : new Vector3(x, 0, yOrZ)) + target;
                 angleCur -= angledelta;
             }
 
