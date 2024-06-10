@@ -3,6 +3,7 @@ using System.IO;
 using IG.Runtime.Utils;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace IG.AssetBundle{
     public enum AssetMode{
@@ -23,6 +24,11 @@ namespace IG.AssetBundle{
         private static string    s_cachePath;
         public static  string    CONFIG_PATH => s_configPath;
         public         AssetMode AssetLoadMode; //TODO:时间充足补充,现在就用本地包模式
+
+        /// <summary>
+        /// 编辑器的资源路径
+        /// </summary>
+        public string ABDIR_URL;
 
         /// <summary>
         /// 资源url
@@ -80,6 +86,14 @@ namespace IG.AssetBundle{
             }
 
             return rel;
+        }
+        
+        /// <summary>
+        /// 保存设置
+        /// </summary>
+        public void Save(){
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
         }
 #endif
 

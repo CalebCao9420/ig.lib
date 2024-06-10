@@ -183,7 +183,7 @@ namespace IG.Editor.Res{
         /// </summary>
         private void DrawABResInfo(){
             //设置资源目录
-            Data.ABResDir = EditorHelper.HasTitleSelectFolderPathHorizontal("AB资源目录", Data.ABResDir, WINDOWS_WIDTH_DEFAULT, WINDOWS_HEIGHT_DEFAULT);
+            AssetSystemConfig.Instance.ABDIR_URL = EditorHelper.HasTitleSelectFolderPathHorizontal("AB资源目录", AssetSystemConfig.Instance.ABDIR_URL, WINDOWS_WIDTH_DEFAULT, WINDOWS_HEIGHT_DEFAULT);
             DefaultSpace();
             Data.ABInfoFile = EditorHelper.HasTitleField("AB资源表名", Data.ABInfoFile, WINDOWS_WIDTH_DEFAULT, WINDOWS_HEIGHT_DEFAULT);
             DefaultSpace();
@@ -375,7 +375,7 @@ namespace IG.Editor.Res{
             //清空无用AB标记
             AssetDatabase.RemoveUnusedAssetBundleNames();
             //定位需要打包资源的文件夹根目录。
-            strNeedSetABLableRootDIR = BuildSettingData.Instance.ABResDir;
+            strNeedSetABLableRootDIR = AssetSystemConfig.Instance.ABDIR_URL;
             DirectoryInfo dirTempInfo = new DirectoryInfo(strNeedSetABLableRootDIR);
             dirScenesDIRArray = dirTempInfo.GetDirectories();
 

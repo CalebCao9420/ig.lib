@@ -87,7 +87,6 @@ namespace IG.Editor.Res{
         public bool   AllowUnsafeCode = true;
         public bool   StripEngineCode = false;
         public string ApplicationIdentifier;
-        public string ABResDir     = String.Empty;
         public string ABInfoFile   = "au_abinfo.table";
         public string ABPackResMap = "au_map.table"; //资源包和资源映射表
         public string ABTotalMap   = "au_total.table";
