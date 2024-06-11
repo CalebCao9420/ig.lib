@@ -25,6 +25,9 @@ namespace IG.AssetBundle{
         public static  string    CONFIG_PATH => s_configPath;
         public         AssetMode AssetLoadMode; //TODO:时间充足补充,现在就用本地包模式
 
+        public string ABInfoFile   = "au_abinfo.table";//所有资源CRC与Size信息
+        public string ABPackResMap = "au_map.table"; //key=资源包和value=资源映射表
+        public string ABTotalMap   = "au_total.table";//key=资源 value=资源包表
         /// <summary>
         /// 编辑器的资源路径
         /// </summary>

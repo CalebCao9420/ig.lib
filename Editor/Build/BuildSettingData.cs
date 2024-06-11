@@ -4,7 +4,7 @@ using System.IO;
 #if UNITY_EDITOR
 using UnityEditor;
 
-namespace IG.Editor.Res{
+namespace IG.Editor{
     public partial class BuildSettingData : ScriptableObject{
     #region publicMethod
 
@@ -39,24 +39,7 @@ namespace IG.Editor.Res{
         /// </summary>
         /// <returns></returns>
         public static string GetABOutFile(){ return GetPlatformPath() + "/" + AssetSystemHelper.GetPlatformABDirName(Instance.TargetPlat); }
-
-        /// <summary>
-        /// Bundle 信息输出目录
-        /// </summary>
-        /// <returns></returns>
-        public static string GetABBundleInfo(){ return GetPlatformPath() + "/" + AssetSystemHelper.GetPlatformABDirName(Instance.TargetPlat) + "/" + Instance.ABInfoFile; }
-
-        /// <summary>
-        /// 资源-bundle 映射表目录
-        /// </summary>
-        /// <returns></returns>
-        public static string GetABBundleMapInfo(){ return GetPlatformPath() + "/" + AssetSystemHelper.GetPlatformABDirName(Instance.TargetPlat) + "/" + Instance.ABPackResMap; }
-
-        /// <summary>
-        /// 总资源表目录
-        /// </summary>
-        /// <returns></returns>
-        public static string GetABTotalBundleInfo(){ return GetPlatformPath() + "/" + AssetSystemHelper.GetPlatformABDirName(Instance.TargetPlat) + "/" + Instance.ABTotalMap; }
+       
 
         /// <summary>
         /// 获取平台路径
@@ -87,9 +70,7 @@ namespace IG.Editor.Res{
         public bool   AllowUnsafeCode = true;
         public bool   StripEngineCode = false;
         public string ApplicationIdentifier;
-        public string ABInfoFile   = "au_abinfo.table";
-        public string ABPackResMap = "au_map.table"; //资源包和资源映射表
-        public string ABTotalMap   = "au_total.table";
+        
         public string AB_MANIFEST => $"{AssetSystemHelper.GetPlatformABDirName(Instance.TargetPlat)}.manifest";
 
         /// <summary>

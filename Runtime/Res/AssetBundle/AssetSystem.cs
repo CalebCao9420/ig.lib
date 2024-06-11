@@ -343,25 +343,20 @@ namespace IG.AssetBundle{
                         path += suffix;
                     }
 
+                    path = $"{AssetSystemConfig.Instance.ABDIR_URL}/{path}";
                     Object asset = UnityEditor.AssetDatabase.LoadAssetAtPath(path, type);
                     if (asset == null){
                         Debug.LogError(string.Format(LOG_LOAD, path));
                     }
-#endif
+
                     return asset;
+#endif
+                    break;
                 case AssetMode.EditorPkg:
                 case AssetMode.Local:
                 case AssetMode.Remote:
                 case AssetMode.LocalAndRemote:
-                    if (bundleName.Contains(PathConst.Suffix.PREFAB)){
-                        bundleName = StringUtils.CutSuffix(bundleName);
-                    }
-
-                    if (!bundleName.Contains(PathConst.Suffix.BUNDLE)){
-                        bundleName += PathConst.Suffix.BUNDLE;
-                    }
-
-                    bundleName = bundleName.ToLower();
+                    bundleName = FixBundleName(bundleName);
                     UnityEngine.AssetBundle assetBundle = Get(bundleName);
                     //正常情况无法加载，连URL一起转一次MD5,查找本地资源
                     if (assetBundle == null){
@@ -463,7 +458,7 @@ namespace IG.AssetBundle{
                     if (!suffix.Contains("*")){ suffix = $"*{suffix}"; }
 
                     string[] files  = FileManager.GetFiles(path, suffix, true);
-                    int      length = files == null ? 0 : files.Length;
+                    int      length = files?.Length ?? 0;
                     Object[] assets = files == null ? null : new Object[length];
                     for (int i = 0; i < length; ++i){
                         assets[i] = UnityEditor.AssetDatabase.LoadAssetAtPath(files[i], type);
@@ -479,16 +474,65 @@ namespace IG.AssetBundle{
                 case AssetMode.Local:
                 case AssetMode.Remote:
                 case AssetMode.LocalAndRemote:
-                    bundleName = bundleName.ToLower();
+                    bundleName = FixBundleName(bundleName);
                     UnityEngine.AssetBundle assetBundle = Get(bundleName);
                     //正常情况无法加载，连URL一起转一次MD5,查找本地资源
                     if (assetBundle == null){
-                        string url      = Instance._assetURL + AssetSystemHelper.GetPlatformABDirName() + bundleName;
+                        // string url      = Instance._assetURL + AssetSystemHelper.GetPlatformABDirName() + bundleName;
+                        string url      = Instance._assetURL + "/" + bundleName;
                         var    fileName = FileManager.StringToMD5(url.ToLower());
                         assetBundle = Get(fileName);
                     }
 
                     return type == null ? assetBundle.LoadAllAssets() : assetBundle.LoadAllAssets(type);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 加载指定的文件夹下的所有资源包中包含的所有资源
+        /// Editor 加载要添加suffix
+        /// Runtime 不管suffix
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <param name="type"></param>
+        /// <param name="suffix"></param>
+        /// <returns></returns>
+        public static Object[] LoadAllByRecursive(string dir, Type type = null, string suffix = null){
+            switch (Instance._mode){
+                case AssetMode.Editor:
+                case AssetMode.EditorPkg:
+                case AssetMode.Local:
+                case AssetMode.Remote:
+                case AssetMode.LocalAndRemote:
+                    List<Object> rel = ListPool<Object>.GetList();
+                    // dir = FixBundleName(dir);
+                    if (!suffix.Contains("*")){ suffix = $"*{suffix}"; }
+
+                    string[] allFiles = FileManager.GetFiles($"{AssetSystemConfig.Instance.URL}/{dir}", suffix, true);
+                    int      len      = allFiles?.Length ?? 0;
+                    for (int i = 0; i < len; ++i){
+                        string single = allFiles[i];
+                        single = single.Replace("\\", "/");
+                        single = single.Substring(single.LastIndexOf(dir)).ToLower();
+                        // single.Log($"加载资源：{single}",LogType.Error);
+                        UnityEngine.AssetBundle assetBundle = Get(single);
+                        //正常情况无法加载，连URL一起转一次MD5,查找本地资源
+                        if (assetBundle == null){
+                            // string url      = Instance._assetURL + AssetSystemHelper.GetPlatformABDirName() + bundleName;
+                            string url      = Instance._assetURL + "/" + single;
+                            var    fileName = FileManager.StringToMD5(url.ToLower());
+                            assetBundle = Get(fileName);
+                        }
+
+                        var bundleFiles = type == null ? assetBundle.LoadAllAssets() : assetBundle.LoadAllAssets(type);
+                        rel.AddRange(bundleFiles);
+                    }
+
+                    Object[] relArr = rel.ToArray();
+                    rel.Recycle();
+                    return relArr;
             }
 
             return null;
@@ -564,6 +608,22 @@ namespace IG.AssetBundle{
             }
 
             Instance._assetBundleMap.Clear();
+        }
+
+        private static string FixBundleName(string bundleName){
+            int suffixIndex = bundleName.LastIndexOf(StringUtils.PERIOD_SIGN);
+            if (suffixIndex >= 0 && suffixIndex < bundleName.Length){
+                string suffix = bundleName.Substring(suffixIndex);
+                if (!suffix.Equals(PathConst.Suffix.BUNDLE)){
+                    bundleName = StringUtils.CutSuffix(bundleName);
+                }
+            }
+
+            if (!bundleName.Contains(PathConst.Suffix.BUNDLE)){
+                bundleName += PathConst.Suffix.BUNDLE;
+            }
+
+            return bundleName.ToLower();
         }
 
         /// <summary>
