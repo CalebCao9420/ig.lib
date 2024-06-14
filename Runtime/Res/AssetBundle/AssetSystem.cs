@@ -154,9 +154,11 @@ namespace IG.AssetBundle{
                 return assetBundle;
             }
             else if (Instance._manifest != null){
-                string[] dependencies = Instance._manifest.GetDirectDependencies(bundleName);
-                string   path         = null;
-                for (int i = 0; i < dependencies.Length; ++i){
+                List<string> dependencies = ListPool<string>.GetList();
+                GetAllDependencies(bundleName,dependencies);
+                int    len  = dependencies?.Count ?? 0;
+                string path = null;
+                for (int i = 0; i < len; ++i){
                     string dependence = dependencies[i];
                     if (!Instance._assetBundleMap.ContainsKey(dependence)){
                         path = GetPath(dependence);
@@ -165,19 +167,15 @@ namespace IG.AssetBundle{
                             return null;
                         }
 
-                        assetBundle = UnityEngine.AssetBundle.LoadFromFile(path);
-                        Add(dependence, assetBundle);
+                        var depAssetBundle = UnityEngine.AssetBundle.LoadFromFile(path);
+                        Add(dependence, depAssetBundle);
+                        if (dependence.Equals(bundleName)){
+                            assetBundle = depAssetBundle;
+                        }
                     }
                 }
 
-                path = GetPath(bundleName);
-                if (!File.Exists(path)){
-                    LogHelper.Log(string.Format(LOG_GET, path), LogType.Error);
-                    return null;
-                }
-
-                assetBundle = UnityEngine.AssetBundle.LoadFromFile(path);
-                Add(bundleName, assetBundle);
+                dependencies.Recycle();
             }
 
             return assetBundle;
@@ -196,7 +194,7 @@ namespace IG.AssetBundle{
                 }
             }
             else{
-                List<string> dependenList = new List<string>();
+                List<string> dependenList = ListPool<string>.GetList();
                 GetAllDependencies(bundleName, dependenList);
                 CheckCoroutineObj();
                 //游戏主控Mono 去开启这个携程
@@ -207,6 +205,7 @@ namespace IG.AssetBundle{
                                                                          try{
                                                                              Instance._assetBundleMap.TryGetValue(bundleName, out assetBundle);
                                                                              onLoadComplete.Invoke(assetBundle);
+                                                                             dependenList.Recycle();
                                                                          }
                                                                          catch (Exception e){
                                                                              Debug.LogError("异步加载资源回调错误!" + bundleName + " " + e);
@@ -394,7 +393,6 @@ namespace IG.AssetBundle{
                 return null;
             }
 
-            bundleName += PathConst.Suffix.BUNDLE;
             bundleName =  bundleName.ToLower();
             if (name == null){
                 name = bundleName.Substring(bundleName.LastIndexOf('/') + 1);
@@ -402,7 +400,7 @@ namespace IG.AssetBundle{
             }
 
             name = name.ToLower();
-            if (type == null) type = GetAssetType(ref bundleName);
+            if (type == null) type = GetAssetType(ref name);
             LoadInfo loadInfo = new LoadInfo(){
                                                   LoadCallback = loadComplete,
                                                   BundleName   = bundleName,

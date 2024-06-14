@@ -24,8 +24,13 @@ namespace IG.Events{
         /// After the override method, must call the base method
         /// </summary>
         protected virtual void OnDestroy(){
-            EventMonoCenter.Instance.DeregisterCtrl(this.GUID);
-            RemoveEvent();
+            if (EventMonoCenter.IsValid){
+                EventMonoCenter.Instance.DeregisterCtrl(this.GUID);
+            }
+
+            if (GameEventManager.IsValid){
+                RemoveEvent();
+            }
         }
 
         /// <summary>
