@@ -173,9 +173,9 @@ namespace IG.Runtime.Log{
             var prevLogPath = PlayerPrefs.HasKey(logPathKey) ? PlayerPrefs.GetString(logPathKey) : null; //记录之前日志的路径
             PlayerPrefs.SetString(logPrePathKey, prevLogPath);                                           //设置之前的日志路径key
             PlayerPrefs.SetString(logPathKey,    logPath);
+            Path           = logPath; //路径地址
             LogHelper.Log("[Current][日志路径]:" + logPath);
             LogHelper.Log("[Pre][日志路径]:"     + prevLogPath);
-            Path           = logPath; //路径地址
             s_initComplete = true;
             s_isDestroy    = false;
             OnStandardStart();
