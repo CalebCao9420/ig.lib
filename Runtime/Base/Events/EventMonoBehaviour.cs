@@ -41,7 +41,7 @@ namespace IG.Events{
         /// <summary>
         /// Remove listener event
         /// </summary>
-        protected void RemoveEvent(){
+        protected virtual void RemoveEvent(){
             if (_eventDic == null){
                 return;
             }
