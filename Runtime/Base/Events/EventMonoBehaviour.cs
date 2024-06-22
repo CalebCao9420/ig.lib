@@ -16,6 +16,7 @@ namespace IG.Events{
         void Awake(){
             this.GUID = System.Guid.NewGuid().ToString();
             EventMonoCenter.Instance.RegisterCtrl(this.GUID, this);
+            this.OnAwake();
             this.AddEvent();
         }
 
@@ -32,6 +33,8 @@ namespace IG.Events{
                 RemoveEvent();
             }
         }
+
+        protected virtual void OnAwake(){ }
 
         /// <summary>
         /// Adds the event.
