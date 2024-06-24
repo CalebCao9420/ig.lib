@@ -20,7 +20,7 @@ namespace IG.Runtime.Common.FSM{
 
         public bool Enter(IFSMStateParam param = null){
             _duration = 0;
-            return this.OnEnter();
+            return this.OnEnter(param);
         }
 
         public bool Leave(){ return this.OnLeave(); }
@@ -32,7 +32,7 @@ namespace IG.Runtime.Common.FSM{
 
         public abstract void Dispose();
 
-        protected virtual bool OnEnter(){
+        protected virtual bool OnEnter(IFSMStateParam param = null){
             IsComplete = false;
             _duration  = 0;
             return true;
