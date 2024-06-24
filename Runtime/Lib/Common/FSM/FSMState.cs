@@ -18,7 +18,7 @@ namespace IG.Runtime.Common.FSM{
         public bool    IsComplete{ get; protected set; }
         public FSMState(TState state){ this.State = state; }
 
-        public bool Enter(){
+        public bool Enter(IFSMStateParam param = null){
             _duration = 0;
             return this.OnEnter();
         }
