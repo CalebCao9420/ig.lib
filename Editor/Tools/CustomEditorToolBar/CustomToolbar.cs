@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using IG.Editor.Helper;
 using IG.Runtime.Utils;
@@ -96,3 +97,4 @@ namespace IG.Module.Editor{
     public interface IToolbarLeftFunction : IToolbarFunction{
     }
 }
+#endif
