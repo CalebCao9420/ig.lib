@@ -49,12 +49,12 @@ namespace IG.Events{
         /// <summary>
         ///Public adds event listener 
         /// </summary>
-        public static void AddEventListener(string eventType, EventCallback eventCallback){
-            Instance.PAddEventListener(eventType, eventCallback);
-        }
+        public static void AddEventListener(string eventType, EventCallback eventCallback){ Instance.PAddEventListener(eventType, eventCallback); }
 
         public static void RemoveEventListener(string eventType, EventCallback eventCallback){
-            Instance.PRemoveEventListener(eventType, eventCallback);
+            if (IsValid){
+                Instance.PRemoveEventListener(eventType, eventCallback);
+            }
         }
 
         /// <summary>
