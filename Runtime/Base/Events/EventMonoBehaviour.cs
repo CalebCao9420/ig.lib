@@ -17,7 +17,7 @@ namespace IG.Events{
             this.GUID = System.Guid.NewGuid().ToString();
             EventMonoCenter.Instance.RegisterCtrl(this.GUID, this);
             this.OnAwake();
-            this.AddEvent();
+            // this.AddEvent();
         }
 
         /// <summary>
