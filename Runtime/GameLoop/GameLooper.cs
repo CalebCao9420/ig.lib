@@ -187,6 +187,10 @@ namespace IG{
         /// </summary>
         /// <param name="guid"></param>
         public void DeregisterCtrl(string guid){
+            if (false == IsValid){
+                return;
+            }
+
             if (!this.Ctrls.ContainsKey(guid)){
                 Debug.LogError($"[GameLooper]Remove new ctrl error,not has :{guid} ");
                 return;
