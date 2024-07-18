@@ -102,8 +102,7 @@ namespace IG.AssetBundle{
         /// <param name="bundleName">资源包名</param>
         /// <param name="unload">是否释放资源</param>
         public static void Remove(string bundleName, bool unload = true){
-            UnityEngine.AssetBundle assetBundle = null;
-            if (!Instance._assetBundleMap.TryGetValue(bundleName, out assetBundle)){
+            if (!Instance._assetBundleMap.TryGetValue(bundleName, out UnityEngine.AssetBundle assetBundle)){
                 return;
             }
 
@@ -155,7 +154,7 @@ namespace IG.AssetBundle{
             }
             else if (Instance._manifest != null){
                 List<string> dependencies = ListPool<string>.GetList();
-                GetAllDependencies(bundleName,dependencies);
+                GetAllDependencies(bundleName, dependencies);
                 int    len  = dependencies?.Count ?? 0;
                 string path = null;
                 for (int i = 0; i < len; ++i){
@@ -300,17 +299,36 @@ namespace IG.AssetBundle{
         /// <returns></returns>
         public static T Load<T>(string path) where T : Object{
             HookBundleAndAssetName(path, out string bundleName, out string name);
-            UnityEngine.AssetBundle bundle = Get(bundleName);
-            //正常情况无法加载，连URL一起转一次MD5,查找本地资源
-            if (bundle == null){
-                LogHelper.Log($"[无法获取确认一下]:{bundleName}", LogType.Error);
-                string url      = Instance._assetURL + AssetSystemHelper.GetPlatformABDirName() + bundleName;
-                var    fileName = FileManager.StringToMD5(url.ToLower());
-                bundle = Get(fileName);
-            }
+            switch (Instance._mode){
+                case AssetMode.Editor:
+#if UNITY_EDITOR
+                    Type type = typeof(T);
+                    PatchLoadPath(ref path, type);
+                    var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(path);
+                    if (asset == null){
+                        Debug.LogError(string.Format(LOG_LOAD, path));
+                    }
 
-            if (bundle.Contains(name)){
-                return bundle.LoadAsset<T>(name);
+                    return asset;
+#endif
+                case AssetMode.EditorPkg:
+                case AssetMode.Local:
+                case AssetMode.Remote:
+                case AssetMode.LocalAndRemote:
+                    UnityEngine.AssetBundle bundle = Get(bundleName);
+                    //正常情况无法加载，连URL一起转一次MD5,查找本地资源
+                    if (bundle == null){
+                        LogHelper.Log($"[无法获取确认一下]:{bundleName}", LogType.Error);
+                        string url      = Instance._assetURL + AssetSystemHelper.GetPlatformABDirName() + bundleName;
+                        var    fileName = FileManager.StringToMD5(url.ToLower());
+                        bundle = Get(fileName);
+                    }
+
+                    if (bundle.Contains(name)){
+                        return bundle.LoadAsset<T>(name);
+                    }
+
+                    return null;
             }
 
             return null;
@@ -335,14 +353,7 @@ namespace IG.AssetBundle{
             switch (Instance._mode){
                 case AssetMode.Editor:
 #if UNITY_EDITOR
-
-                    //如果Editor没有Local_AB就只有path
-                    string suffix = type != null ? PathConst.S_TypeMap[type] : String.Empty;
-                    if (!path.Contains(suffix)){
-                        path += suffix;
-                    }
-
-                    path = $"{AssetSystemConfig.Instance.ABDIR_URL}/{path}";
+                    PatchLoadPath(ref path, type);
                     Object asset = UnityEditor.AssetDatabase.LoadAssetAtPath(path, type);
                     if (asset == null){
                         Debug.LogError(string.Format(LOG_LOAD, path));
@@ -393,7 +404,7 @@ namespace IG.AssetBundle{
                 return null;
             }
 
-            bundleName =  bundleName.ToLower();
+            bundleName = bundleName.ToLower();
             if (name == null){
                 name = bundleName.Substring(bundleName.LastIndexOf('/') + 1);
                 name = name.Remove(name.LastIndexOf('.'));
@@ -411,6 +422,7 @@ namespace IG.AssetBundle{
             switch (Instance._mode){
                 case AssetMode.Editor:
 #if UNITY_EDITOR
+                    PatchLoadPath(ref path, type);
                     Object asset = UnityEditor.AssetDatabase.LoadAssetAtPath(path, type);
                     if (asset == null){
                         Debug.LogError(string.Format(LOG_LOAD, path));
@@ -452,6 +464,7 @@ namespace IG.AssetBundle{
 #if UNITY_EDITOR
 
                     //如果Editor没有Local_AB就只有path = bundleName
+                    //需要测试看下是否需要PathPatch
                     string path = bundleName.Replace(PathConst.Suffix.BUNDLE, string.Empty);
                     if (!suffix.Contains("*")){ suffix = $"*{suffix}"; }
 
@@ -497,20 +510,45 @@ namespace IG.AssetBundle{
         /// <param name="type"></param>
         /// <param name="suffix"></param>
         /// <returns></returns>
-        public static Object[] LoadAllByRecursive(string dir, Type type = null, string suffix = null){
+        public static List<Object> LoadAllByRecursive(string dir, Type type = null, string suffix = null){
+            List<Object> rel      = null;
+            string[]     allFiles = null;
+            int          filesLen = 0;
             switch (Instance._mode){
                 case AssetMode.Editor:
+#if UNITY_EDITOR
+
+                    // dir = FixBundleName(dir);
+                    if (!suffix.Contains("*")){ suffix = $"*{suffix}"; }
+
+                    PatchLoadPath(ref dir, null);                       //Editor全加载不要用正确的type
+                    rel      = new();                                   //ListPool<Object>.GetList();
+                    allFiles = FileManager.GetFiles(dir, suffix, true); //meta也会一起hoke出来，考虑是editor先不考虑优化
+                    filesLen = allFiles?.Length ?? 0;
+                    for (int i = 0; i < filesLen; ++i){
+                        string single = allFiles[i];
+                        single = single.Replace("\\", "/");
+                        single = single.Substring(single.LastIndexOf(dir)).ToLower();
+                        // single.Log($"加载资源：{single}",LogType.Error);
+                        Object asset = UnityEditor.AssetDatabase.LoadAssetAtPath(single, type);
+                        if (asset){
+                            rel.Add(asset);
+                        }
+                    }
+
+                    return rel;
+#endif
                 case AssetMode.EditorPkg:
                 case AssetMode.Local:
                 case AssetMode.Remote:
                 case AssetMode.LocalAndRemote:
-                    List<Object> rel = ListPool<Object>.GetList();
+                    rel = new(); //ListPool<Object>.GetList();
                     // dir = FixBundleName(dir);
                     if (!suffix.Contains("*")){ suffix = $"*{suffix}"; }
 
-                    string[] allFiles = FileManager.GetFiles($"{AssetSystemConfig.Instance.URL}/{dir}", suffix, true);
-                    int      len      = allFiles?.Length ?? 0;
-                    for (int i = 0; i < len; ++i){
+                    allFiles = FileManager.GetFiles($"{AssetSystemConfig.Instance.URL}/{dir}", suffix, true);
+                    filesLen = allFiles?.Length ?? 0;
+                    for (int i = 0; i < filesLen; ++i){
                         string single = allFiles[i];
                         single = single.Replace("\\", "/");
                         single = single.Substring(single.LastIndexOf(dir)).ToLower();
@@ -528,9 +566,7 @@ namespace IG.AssetBundle{
                         rel.AddRange(bundleFiles);
                     }
 
-                    Object[] relArr = rel.ToArray();
-                    rel.Recycle();
-                    return relArr;
+                    return rel;
             }
 
             return null;
@@ -685,6 +721,25 @@ namespace IG.AssetBundle{
             string typestr = resName.Substring(idx);
             type = PathConst.S_FileTypeMap[typestr];
             return type;
+        }
+
+        /// <summary>
+        /// 当前只有 Editor 下使用
+        /// 补充path的Res父目录
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="type"></param>
+        private static void PatchLoadPath(ref string path, Type type){
+#if UNITY_EDITOR
+
+            //如果Editor没有Local_AB就只有path
+            string suffix = type != null ? PathConst.S_TypeMap[type] : String.Empty;
+            if (!path.Contains(suffix)){
+                path += suffix;
+            }
+
+            path = $"{AssetSystemConfig.Instance.ABDIR_URL}/{path}";
+#endif
         }
 
         public static void HookBundleAndAssetName(string path, out string bundle, out string name){
