@@ -32,7 +32,7 @@ namespace IG.Runtime.Extensions{
             int i   = 0;
             int num = array.Length;
             while (i < num){
-                if (array[i] == element){
+                if (array[i].Equals(element)){
                     idx = i;
                     return true;
                 }
