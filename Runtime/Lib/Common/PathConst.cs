@@ -14,6 +14,11 @@ namespace IG.Runtime.Common{
                                                                                              { typeof(Sprite), Suffix.PNG },
                                                                                              { typeof(AudioClip), Suffix.AUDIO_MP3 },
                                                                                              { typeof(ScriptableObject), Suffix.SCRIPTABLE_OBJECT },
+#if UNITY_2021_3_OR_NEWER
+                                                                                             { typeof(RenderTexture), Suffix.SCRIPTABLE_OBJECT },
+#else
+{ typeof(RenderTexture), Suffix.RENDER_TEXTURE },
+#endif
                                                                                          };
 
         public static readonly Dictionary<string, Type> S_FileTypeMap = new Dictionary<string, Type>(){
@@ -25,9 +30,14 @@ namespace IG.Runtime.Common{
                                                                                                           { Suffix.BUNDLE, typeof(UnityEngine.AssetBundle) },
                                                                                                           { Suffix.AUDIO_MP3, typeof(AudioClip) },
                                                                                                           { Suffix.AUDIO_WAV, typeof(AudioClip) },
-                                                                                                          { Suffix.SPRITE_ATLAS, typeof(SpriteAtlas) },
-                                                                                                          { Suffix.SCRIPTABLE_OBJECT, typeof(ScriptableObject) },
-                                                                                                          { Suffix.RENDER_TEXTURE, typeof(RenderTexture) }
+                                                                                                          { Suffix.SPRITE_ATLAS, typeof(SpriteAtlas) },{
+                                                                                                              Suffix.SCRIPTABLE_OBJECT, typeof(ScriptableObject)
+                                                                                                          },
+#if UNITY_2021_3_OR_NEWER
+                                                                                                          { Suffix.RENDER_TEXTURE, typeof(RenderTexture) },
+#else
+{ Suffix.RENDER_TEXTURE, typeof(RenderTexture) },
+#endif
                                                                                                       };
 
         public static class Suffix{
