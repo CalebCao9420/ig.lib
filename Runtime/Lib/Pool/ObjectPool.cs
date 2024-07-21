@@ -136,8 +136,10 @@ namespace IG.Pool{
         }
 
         private void HookSubPool(PoolResourceType resourceType, string name, out ISubPool subPool){
-            bool exist = _pool.TryGetValue(resourceType, out Dictionary<string, ISubPool> pools);
-            if (exist && pools.TryGetValue(name, out var pool)){
+            bool     exist    = _pool.TryGetValue(resourceType, out Dictionary<string, ISubPool> pools);
+            ISubPool pool     = null;
+            bool     existSub = exist && pools.TryGetValue(name, out pool);
+            if (existSub){
                 subPool = pool;
             }
             else{
@@ -145,12 +147,13 @@ namespace IG.Pool{
                 if (subPool == null){
                     this.Log($"错误GameObject名:{name}", LogType.Error);
                 }
-
-                pools.Add(name, subPool);
             }
 
             //ReAdd
-            if (!exist){
+            if (exist){
+                pools.Readd(name, subPool);
+            }
+            else{
                 _pool.Add(resourceType, new Dictionary<string, ISubPool>(){ { name, subPool } });
             }
         }
