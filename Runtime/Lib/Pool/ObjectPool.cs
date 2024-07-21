@@ -145,6 +145,8 @@ namespace IG.Pool{
                 if (subPool == null){
                     this.Log($"错误GameObject名:{name}", LogType.Error);
                 }
+
+                pools.Add(name, subPool);
             }
 
             //ReAdd
