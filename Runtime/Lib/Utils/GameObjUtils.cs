@@ -8,10 +8,22 @@ namespace IG.Runtime.Utils{
     /// 考虑一下 是否需要存一下引用
     /// </summary>
     public static class GameObjUtils{
+        public static void TransformZero(this GameObject gameObject,bool identityRotate = true){
+            Transform tr = gameObject.transform;
+            TransformZero(tr,identityRotate);
+        }
+
+        public static void TransformZero(this Transform tr,bool identityRotate = true){
+            tr.localPosition = Vector3.zero;
+            tr.localScale = Vector3.one;
+            if (identityRotate){
+                tr.localRotation = Quaternion.identity;
+            }
+        }
+
         public static GameObject CreateGameObject(string name = "", bool isStatic = false){
             GameObject obj = new GameObject(name);
-            obj.transform.localScale    = Vector3.one;
-            obj.transform.localPosition = Vector3.zero;
+            TransformZero(obj,false);
             obj.isStatic                = isStatic;
             return obj;
         }
@@ -48,8 +60,7 @@ namespace IG.Runtime.Utils{
 
         public static GameObject CreateGameObject<T>(string name = "", bool isStatic = false) where T : Component{
             GameObject result = new GameObject(name);
-            result.transform.localScale    = Vector3.one;
-            result.transform.localPosition = Vector3.zero;
+            TransformZero(result);
             result.isStatic                = isStatic;
             _                              = result.GetOrAddComponent<T>();
             return result;
@@ -58,17 +69,13 @@ namespace IG.Runtime.Utils{
         public static T CreateGameObjectAndComponent<T>(string name = "", UnityEngine.Transform parent = null, bool isStatic = false)
             where T : Component{
             GameObject obj = new GameObject(name);
-            obj.transform.localScale    = Vector3.one;
-            obj.transform.localPosition = Vector3.zero;
+            TransformZero(obj);
             obj.transform.SetParent(parent);
             obj.isStatic = isStatic;
             // T result = obj.GetOrAddComponent<T>();
-            T result = null;
-            if (obj.GetComponent<T>() == null){
+            T result = obj.GetComponent<T>();
+            if (result == null){
                 result = obj.AddComponent<T>();
-            }
-            else{
-                result = obj.GetComponent<T>();
             }
 
             return result;
