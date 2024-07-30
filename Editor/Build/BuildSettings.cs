@@ -1,17 +1,13 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
-using System.IO;
 using IG.AssetBundle;
-using IG.IO;
-using ig.lib.Editor.Res;
-using IG.Runtime.Common;
-using IG.Runtime.Extensions;
-using IG.Runtime.Utils;
-using UnityEngine;
-#if UNITY_EDITOR
 using UnityEditor.Build.Reporting;
 using IG.Editor.Helper;
+using IG.Editor.Res;
+using IG.Runtime.Utils;
 using UnityEditor;
+using UnityEngine;
 
 namespace IG.Editor{
     public partial class BuildSettings : EditorWindow{

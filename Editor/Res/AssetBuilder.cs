@@ -1,18 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using IG;
 using IG.AssetBundle;
-using IG.Editor;
 using IG.IO;
 using IG.Runtime.Common;
 using IG.Runtime.Extensions;
 using IG.Runtime.Utils;
+using UnityEditor;
 using UnityEngine;
 
-namespace ig.lib.Editor.Res{
+namespace IG.Editor.Res{
 #if UNITY_EDITOR
-    using UnityEditor;
-
     public static class AssetBuilder{
         private const string FORMAT_PATH            = "{0}/{1}";
         private const string GUI_PRE_PROCESS_TITLE  = "Build Preprocess [{0}/{1}]";
@@ -275,7 +272,7 @@ namespace ig.lib.Editor.Res{
             //将生成的bundle名与资源名添加到json文件
             var map         = S_BundlePacks;
             var jsonContent = JSONUtils.ObjectToJson(map);
-            FileManager.WriteString(AssetBuilder.GetABTotalBundleInfo(), jsonContent);
+            FileManager.WriteString(GetABTotalBundleInfo(), jsonContent);
             Debug.Log("Total Res Map数据配置完成！".GreenColor());
         }
 
@@ -286,7 +283,7 @@ namespace ig.lib.Editor.Res{
             //将生成的bundle名与资源名添加到json文件
             var map         = S_ResBundleMap;
             var jsonContent = JSONUtils.ObjectToJson(map);
-            FileManager.WriteString(AssetBuilder.GetABBundleMapInfo(), jsonContent);
+            FileManager.WriteString(GetABBundleMapInfo(), jsonContent);
             Debug.Log("Res-Bundle Map数据配置完成！".GreenColor());
         }
 
@@ -297,7 +294,7 @@ namespace ig.lib.Editor.Res{
             //将生成的bundle名与资源名添加到json文件
             List<AssetBundleConfig> list        = S_BundleMap.Values();
             var                     jsonContent = JSONUtils.ObjectToJson(list);
-            FileManager.WriteString(AssetBuilder.GetABBundleInfo(), jsonContent);
+            FileManager.WriteString(GetABBundleInfo(), jsonContent);
             Debug.Log("Bundle数据配置完成！".GreenColor());
         }
 
@@ -347,7 +344,7 @@ namespace ig.lib.Editor.Res{
             //添加ab整包
             InsertABPackConfig(configs, outDir);
             string json = JSONUtils.ObjectToJson(configs);
-            File.WriteAllText(AssetBuilder.GetABBundleInfo(), json);
+            File.WriteAllText(GetABBundleInfo(), json);
         }
 
         private static void InsertManifest(List<AssetBundleConfig> configs, string manifestFilePath){
