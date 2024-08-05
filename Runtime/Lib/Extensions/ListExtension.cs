@@ -124,6 +124,31 @@ namespace IG.Runtime.Extensions{
 
     #region Normal extension func
 
+        /// <summary>
+        /// 简单安全遍历
+        /// </summary>
+        public static void Ergodic<T>(this List<T> list, System.Action<T> onCheck){
+            int len = list?.Count ?? 0;
+            for (int i = 0; i < len; ++i){
+                T single = list[i];
+                onCheck?.Invoke(single);
+            }
+        }
+
+        /// <summary>
+        /// 简单遍历
+        /// 条件正确则break
+        /// </summary>
+        public static void Ergodic<T>(this List<T> list, System.Func<T, bool> onCheck){
+            int len = list?.Count ?? 0;
+            for (int i = 0; i < len; ++i){
+                T single = list[i];
+                if (onCheck.Invoke(single)){
+                    break;
+                }
+            }
+        }
+
         public static T Remove<T>(this List<T> dir, T target){
             if (!dir.Contains(target)) return default(T);
             int index = 0;
@@ -157,11 +182,10 @@ namespace IG.Runtime.Extensions{
                 return list;
             }
 
-            int loopCount   = list.Count;
-            int randomIndex = 0;
+            int loopCount = list.Count;
             for (int i = 0; i < loopCount; ++i){
-                randomIndex = RandomUtils.RandomInt(0, loopCount);
-                T swap = list.Remove(randomIndex);
+                int randomIndex = RandomUtils.RandomInt(0, loopCount);
+                T   swap        = list.Remove(randomIndex);
                 randomIndex = RandomUtils.RandomInt(0, loopCount - 1);
                 list.Insert(randomIndex, swap);
             }

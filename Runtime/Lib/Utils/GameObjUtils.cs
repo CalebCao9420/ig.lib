@@ -8,14 +8,14 @@ namespace IG.Runtime.Utils{
     /// 考虑一下 是否需要存一下引用
     /// </summary>
     public static class GameObjUtils{
-        public static void TransformZero(this GameObject gameObject,bool identityRotate = true){
+        public static void TransformZero(this GameObject gameObject, bool identityRotate = true){
             Transform tr = gameObject.transform;
-            TransformZero(tr,identityRotate);
+            TransformZero(tr, identityRotate);
         }
 
-        public static void TransformZero(this Transform tr,bool identityRotate = true){
+        public static void TransformZero(this Transform tr, bool identityRotate = true){
             tr.localPosition = Vector3.zero;
-            tr.localScale = Vector3.one;
+            tr.localScale    = Vector3.one;
             if (identityRotate){
                 tr.localRotation = Quaternion.identity;
             }
@@ -23,8 +23,8 @@ namespace IG.Runtime.Utils{
 
         public static GameObject CreateGameObject(string name = "", bool isStatic = false){
             GameObject obj = new GameObject(name);
-            TransformZero(obj,false);
-            obj.isStatic                = isStatic;
+            TransformZero(obj, false);
+            obj.isStatic = isStatic;
             return obj;
         }
 
@@ -61,8 +61,8 @@ namespace IG.Runtime.Utils{
         public static GameObject CreateGameObject<T>(string name = "", bool isStatic = false) where T : Component{
             GameObject result = new GameObject(name);
             TransformZero(result);
-            result.isStatic                = isStatic;
-            _                              = result.GetOrAddComponent<T>();
+            result.isStatic = isStatic;
+            _               = result.GetOrAddComponent<T>();
             return result;
         }
 
@@ -91,6 +91,21 @@ namespace IG.Runtime.Utils{
             for (int i = 0; i < childrenCount; i++){
                 Transform tr = parent.GetChild(i);
                 onCheck?.Invoke(tr);
+            }
+        }
+
+        /// <summary>
+        /// 简单遍历
+        /// </summary>
+        /// <param name="parent">父节点</param>
+        /// <param name="onCheck">检测目标节点时,break当前循环</param>
+        public static void Ergodic(this Transform parent, System.Func<Transform, bool> onCheck){
+            int childrenCount = parent?.childCount ?? 0;
+            for (int i = 0; i < childrenCount; i++){
+                Transform tr = parent.GetChild(i);
+                if (onCheck.Invoke(tr)){
+                    break;
+                }
             }
         }
 
@@ -190,8 +205,8 @@ namespace IG.Runtime.Utils{
             if (!tex.isReadable){
 #if UNITY_EDITOR
                 UnityEditor.TextureImporter ti = (UnityEditor.TextureImporter)UnityEditor.TextureImporter.GetAtPath(
-                                                                                                                    UnityEditor.AssetDatabase.GetAssetPath(tex)
-                                                                                                                   );
+                     UnityEditor.AssetDatabase.GetAssetPath(tex)
+                    );
                 ti.isReadable = true;
                 UnityEditor.AssetDatabase.ImportAsset(UnityEditor.AssetDatabase.GetAssetPath(tex));
 #endif
