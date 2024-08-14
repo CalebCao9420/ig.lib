@@ -130,6 +130,7 @@ namespace IG.Runtime.Log{
 
         public override void Init(){
             base.Init();
+            SetLogHandler();
             SetQuitFunc();
             s_ipAddress    = IPAddressHelper.GetIP(ADDRESSFAM.IPv4);
             _errorLogCount = 0;
@@ -205,6 +206,11 @@ namespace IG.Runtime.Log{
             }
 
             WriteLog(content);
+        }
+
+        private void SetLogHandler(){
+            IGLogHandler handle = new IGLogHandler();
+            Debug.unityLogger.logHandler = handle;
         }
 
         private void SetQuitFunc(){
