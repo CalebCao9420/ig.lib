@@ -11,26 +11,24 @@ namespace IG.Runtime.Log{
         }
 
         public void LogFormat(LogType logType, Object context, string format, params object[] args){
-            string formatMsg = string.Format(format, args);
-            
-            string logMessage = string.Empty;
+            string formatStr = string.Empty;
             switch (logType){
                 case LogType.Log:
-                    logMessage = string.Format(LogAnalyzer.LOG_PRINT_KEY, formatMsg);
+                    formatStr = LogAnalyzer.LOG_PRINT_KEY;
                     break;
                 case LogType.Warning:
-                    logMessage = string.Format(LogAnalyzer.WARING_PRINT_KEY, formatMsg);
+                    formatStr = LogAnalyzer.WARING_PRINT_KEY;
                     break;
                 case LogType.Error:
-                    logMessage = string.Format(LogAnalyzer.ERROR_PRINT_KEY, formatMsg);
+                    formatStr = LogAnalyzer.ERROR_PRINT_KEY;
                     break;
             }
 
             if (null != context){
-                logMessage = $"[{context}] {logMessage}";
+                formatStr = $"[{context}] {formatStr}";
             }
 
-            _defaultLogHandler.LogFormat(logType, context, format, logMessage);
+            _defaultLogHandler.LogFormat(logType, context, formatStr, args);
         }
     }
 }

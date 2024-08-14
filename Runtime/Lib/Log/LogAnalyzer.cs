@@ -209,8 +209,7 @@ namespace IG.Runtime.Log{
         }
 
         private void SetLogHandler(){
-            IGLogHandler handle = new IGLogHandler();
-            Debug.unityLogger.logHandler = handle;
+            Debug.unityLogger.logHandler = new IGLogHandler();
         }
 
         private void SetQuitFunc(){
