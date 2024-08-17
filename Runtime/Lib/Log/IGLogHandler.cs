@@ -4,7 +4,11 @@ using Object = UnityEngine.Object;
 
 namespace IG.Runtime.Log{
     public class IGLogHandler : ILogHandler{
-        private readonly ILogHandler _defaultLogHandler = Debug.unityLogger.logHandler;
+        private readonly ILogHandler _defaultLogHandler;
+
+        public IGLogHandler(ILogHandler logHandler){
+            _defaultLogHandler = logHandler;
+        }
 
         public void LogException(Exception exception, UnityEngine.Object context){
             _defaultLogHandler.LogException(exception, context);

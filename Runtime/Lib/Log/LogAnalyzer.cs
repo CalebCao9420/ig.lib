@@ -146,7 +146,7 @@ namespace IG.Runtime.Log{
         /// <param name="path">日志路径</param>
         /// <param name="onLogCallback">日志回调</param>
         public void Setup(bool receiveLog){
-            this.Init();
+            // this.Init();
             ReceivedLog = receiveLog;
             s_SavePath  = $"{Application.persistentDataPath}/Log";
             //TODO:if need dev
@@ -209,7 +209,7 @@ namespace IG.Runtime.Log{
         }
 
         private void SetLogHandler(){
-            Debug.unityLogger.logHandler = new IGLogHandler();
+            Debug.unityLogger.logHandler = new IGLogHandler(Debug.unityLogger.logHandler);
         }
 
         private void SetQuitFunc(){
