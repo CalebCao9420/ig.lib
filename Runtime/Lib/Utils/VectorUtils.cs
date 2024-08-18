@@ -120,7 +120,9 @@ namespace IG.Runtime.Utils{
         /// <param name="radiusX"></param>
         /// <param name="radiusY"></param>
         /// <returns></returns>
-        public static Vector3[] GetCircle(Vector3[] ver, float radiusX, float radiusY, VectorType vectorType = VectorType.XY){ return GetCircle(Vector3.zero, ver, radiusX, radiusY, vectorType); }
+        public static Vector3[] GetCircle(Vector3[] ver, float radiusX, float radiusY, VectorType vectorType = VectorType.XY){
+            return GetCircle(Vector3.zero, ver, radiusX, radiusY, vectorType);
+        }
 
         /// <summary>
         /// 根据缓存数组长度获取圆点位
@@ -537,9 +539,7 @@ namespace IG.Runtime.Utils{
                     }
 
                     if (v[i - 1].magnitude > v[i].magnitude){
-                        Vector2 swap = v[i - 1];
-                        v[i - 1] = v[i];
-                        v[i]     = swap;
+                        (v[i - 1], v[i]) = (v[i], v[i - 1]);
                     }
                 }
             }
@@ -571,9 +571,7 @@ namespace IG.Runtime.Utils{
                     }
 
                     if (v[i - 1].magnitude > v[i].magnitude){
-                        Vector2 swap = v[i - 1];
-                        v[i - 1] = v[i];
-                        v[i]     = swap;
+                        (v[i - 1], v[i]) = (v[i], v[i - 1]);
                     }
                 }
             }
@@ -733,6 +731,28 @@ namespace IG.Runtime.Utils{
         public static Vector2 Remap(Vector2 oldMin, Vector2 oldMax, Vector2 newMin, Vector2 newMax, Vector2 val){
             Vector2 percent = (val - oldMin) / (oldMax - oldMin);
             return (newMax - newMin) * percent + newMin;
+        }
+
+        /// <summary>
+        /// 获取transform 前方位置
+        /// </summary>
+        /// <param name="tr"></param>
+        /// <param name="radius"></param>
+        /// <returns></returns>
+        public static Vector3 Forward(this Transform tr, float radius = 0f){ return Forward(tr.transform.localToWorldMatrix, radius); }
+
+        /// <summary>
+        /// 获取transform 前方位置
+        /// </summary>
+        /// <param name="tr"></param>
+        /// <param name="radius"></param>
+        /// <returns></returns>
+        public static Vector3 Forward(this Matrix4x4 matrix, float radius = 0f){
+            var endPos4 = Vector4.zero;
+            endPos4.z = radius;
+            endPos4.w = 1;
+            var v4 = matrix * endPos4;
+            return new Vector3(v4.x, v4.y, v4.z);
         }
     }
     //
