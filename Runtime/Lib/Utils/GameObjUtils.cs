@@ -47,23 +47,23 @@ namespace IG.Runtime.Utils{
             return obj;
         }
 
-        public static GameObject CreateGameObject<T>(this Transform parent, string name = "", bool isStatic = false)
+        public static T CreateGameObject<T>(this Transform parent, string name = "", bool isStatic = false)
             where T : Component{
             GameObject obj = new GameObject(name);
-            _                        = obj.GetOrAddComponent<T>();
+            T component                        = obj.GetOrAddComponent<T>();
             obj.transform.localScale = Vector3.one;
             obj.transform.position   = parent.position;
             obj.transform.SetParent(parent);
             obj.isStatic = isStatic;
-            return obj;
+            return component;
         }
 
-        public static GameObject CreateGameObject<T>(string name = "", bool isStatic = false) where T : Component{
+        public static T CreateGameObject<T>(string name = "", bool isStatic = false) where T : Component{
             GameObject result = new GameObject(name);
             TransformZero(result);
             result.isStatic = isStatic;
-            _               = result.GetOrAddComponent<T>();
-            return result;
+            T component               = result.GetOrAddComponent<T>();
+            return component;
         }
 
         public static T CreateGameObjectAndComponent<T>(string name = "", UnityEngine.Transform parent = null, bool isStatic = false)
@@ -72,12 +72,7 @@ namespace IG.Runtime.Utils{
             TransformZero(obj);
             obj.transform.SetParent(parent);
             obj.isStatic = isStatic;
-            // T result = obj.GetOrAddComponent<T>();
-            T result = obj.GetComponent<T>();
-            if (result == null){
-                result = obj.AddComponent<T>();
-            }
-
+            T result = obj.GetOrAddComponent<T>();
             return result;
         }
 
