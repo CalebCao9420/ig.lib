@@ -15,6 +15,7 @@ namespace IG{
                 lock (s_lock){
                     if (s_singletonRoot_static == null){
                         s_singletonRoot_static = new UnityEngine.GameObject(SINGLE_MONO_NAME);
+                        UnityEngine.Object.DontDestroyOnLoad(s_singletonRoot_static);
                     }
 
                     return s_singletonRoot_static;

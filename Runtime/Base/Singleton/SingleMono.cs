@@ -13,6 +13,7 @@ namespace IG{
             }
 
             s_instance = this as T;
+            DontDestroyOnLoad(gameObject);
             Init();
         }
 
