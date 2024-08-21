@@ -119,6 +119,7 @@ namespace IG.Pool{
             if (_pool.TryGetValue(type, out var pools)){
                 if (pools.TryGetValue(objName, out var subPool)){
                     subPool.Recycle(obj);
+                    obj.transform.SetParent(PoolRoot.transform);
                 }
             }
             else{
