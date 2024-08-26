@@ -103,9 +103,7 @@ namespace IG.Runtime.Extensions{
             int count = collection.Count;
             while (i < count - 1){
                 int index = UnityEngine.Random.Range(i, count);
-                T   value = collection[i];
-                collection[i]     = collection[index];
-                collection[index] = value;
+                (collection[i], collection[index]) = (collection[index], collection[i]);
                 i++;
             }
         }
@@ -115,9 +113,7 @@ namespace IG.Runtime.Extensions{
             int num = collection.Length;
             while (i < num - 1){
                 int num2 = UnityEngine.Random.Range(i, num);
-                T   t    = collection[i];
-                collection[i]    = collection[num2];
-                collection[num2] = t;
+                (collection[i], collection[num2]) = (collection[num2], collection[i]);
                 i++;
             }
         }
@@ -132,6 +128,21 @@ namespace IG.Runtime.Extensions{
             for (int i = 0; i < len; ++i){
                 T single = list[i];
                 onCheck?.Invoke(single);
+            }
+        }
+
+        /// <summary>
+        /// 简单遍历
+        /// 返回下标与Target
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="onCheck"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void Ergodic<T>(this List<T> list, System.Action<int, T> onCheck){
+            int len = list?.Count ?? 0;
+            for (int i = 0; i < len; ++i){
+                T single = list[i];
+                onCheck?.Invoke(i, single);
             }
         }
 

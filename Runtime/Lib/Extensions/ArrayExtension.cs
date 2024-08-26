@@ -10,6 +10,21 @@
                 onCheck?.Invoke(single);
             }
         }
+        
+        /// <summary>
+        /// 简单遍历
+        /// 返回下标与Target
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="onCheck"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void Ergodic<T>(this T[] array, System.Action<int, T> onCheck){
+            int len = array?.Length ?? 0;
+            for (int i = 0; i < len; ++i){
+                T single = array[i];
+                onCheck?.Invoke(i, single);
+            }
+        }
 
         /// <summary>
         /// 简单遍历
