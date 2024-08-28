@@ -30,6 +30,7 @@ namespace IG.Runtime.Common{
                                                                                                           { Suffix.BUNDLE, typeof(UnityEngine.AssetBundle) },
                                                                                                           { Suffix.AUDIO_MP3, typeof(AudioClip) },
                                                                                                           { Suffix.AUDIO_WAV, typeof(AudioClip) },
+                                                                                                          { Suffix.AUDIO_OGG, typeof(AudioClip) },
                                                                                                           { Suffix.SPRITE_ATLAS, typeof(SpriteAtlas) },{
                                                                                                               Suffix.SCRIPTABLE_OBJECT, typeof(ScriptableObject)
                                                                                                           },
@@ -46,6 +47,7 @@ namespace IG.Runtime.Common{
             public const string U3D            = ".u3d";
             public const string AUDIO_MP3      = ".mp3";
             public const string AUDIO_WAV      = ".wav";
+            public const string AUDIO_OGG      = ".ogg";
             public const string MAT            = ".mat";
             public const string PNG            = ".png";
             public const string RENDER_TEXTURE = ".renderTexture";
