@@ -708,7 +708,7 @@ namespace IG.Runtime.Utils{
                     rel[key] += value;
                 }
                 else{
-                    rel.Readd(key, value);
+                    rel.ReAdd(key, value);
                 }
             }
 

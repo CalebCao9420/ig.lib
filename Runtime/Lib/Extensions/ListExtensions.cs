@@ -5,7 +5,7 @@ using UnityEngine;
 namespace IG.Runtime.Extensions{
     using IG.Runtime.Utils;
 
-    public static class ListExtension{
+    public static class ListExtensions{
         public static T RemoveAt<T>(this List<T> list, int index){
             if (list == null || list.Count < index){
                 return default;

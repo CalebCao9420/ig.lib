@@ -152,7 +152,7 @@ namespace IG.Pool{
 
             //ReAdd
             if (exist){
-                pools.Readd(name, subPool);
+                pools.ReAdd(name, subPool);
             }
             else{
                 _pool.Add(resourceType, new Dictionary<string, ISubPool>(){ { name, subPool } });

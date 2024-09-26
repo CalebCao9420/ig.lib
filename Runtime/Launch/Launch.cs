@@ -14,7 +14,7 @@ namespace IG{
         private static void LaunchAssetSystem(){
             AssetSystemConfig assetSystemConfig = AssetSystemConfig.Instance;
             DownloadSystem.Setup(assetSystemConfig.CACHE_PATH);
-            AssetSystem.Setup(assetSystemConfig);
+            AssetsSystem.Setup(assetSystemConfig);
         }
 
         static partial void OnPostGameLooperInit();

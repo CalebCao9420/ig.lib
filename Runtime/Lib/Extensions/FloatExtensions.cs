@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 namespace IG.Runtime.Extensions{
-    public static class FloatExtension{
+    public static class FloatExtensions{
         /// <summary>
         /// 根据当前已有值和最大值裁剪自身
         /// </summary>

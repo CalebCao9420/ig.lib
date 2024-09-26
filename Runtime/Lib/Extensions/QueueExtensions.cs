@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 namespace IG.Runtime.Extensions{
-    public static class QueueExtension{
+    public static class QueueExtensions{
         /// <summary>
         /// 简单遍历
         /// 每个遍历即删除

@@ -2,7 +2,7 @@
 using UnityEngine;
 
 namespace IG.Runtime.Extensions{
-    public static class MathExtension{
+    public static class MathExtensions{
         public static int[] ToKetaSplit(this int self){
             if (self < 0){
                 return ToKetaSplit(-1 * self);

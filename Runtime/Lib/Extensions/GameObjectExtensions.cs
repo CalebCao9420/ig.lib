@@ -3,7 +3,7 @@
 namespace IG.Runtime.Extensions{
     using UnityEngine;
 
-    public static class GameObjectExtension{
+    public static class GameObjectExtensions{
         /// <summary>
         /// Rects the transform.
         /// </summary>

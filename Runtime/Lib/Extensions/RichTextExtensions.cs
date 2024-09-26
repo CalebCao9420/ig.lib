@@ -1,5 +1,5 @@
 ﻿namespace IG.Runtime.Extensions{
-    public static class RichTextExtension{
+    public static class RichTextExtensions{
         public static string SystemColor(this     string self, string _color){ return string.Format("<color={0}>{1}</color>", _color, self); }
         public static string HEXColor(this        string self, string _hex)  { return SystemColor(self, "#" + _hex); }
         public static string RedColor(this        string self)           { return self.HEXColor("ff0000"); }

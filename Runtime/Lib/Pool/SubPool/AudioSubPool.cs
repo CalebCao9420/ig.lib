@@ -19,10 +19,10 @@ namespace IG.Pool.SubPool{
 
         public AudioSubPool(PoolResourceType type, string path){
             this._Path = path;
-            AssetSystem.HookBundleAndAssetName(path, out string notDo, out this._Key);
+            AssetsSystem.HookBundleAndAssetName(path, out string notDo, out this._Key);
             this._PoolType = type;
             this._Pool     = new();
-            var origin = AssetSystem.Load<AudioClip>(path);
+            var origin = AssetsSystem.Load<AudioClip>(path);
             this._Pool.Add(origin);
         }
 
@@ -40,7 +40,7 @@ namespace IG.Pool.SubPool{
                 rel = _Pool.First(true);
             }
             else{
-                rel = AssetSystem.Load<AudioClip>(this.Path);
+                rel = AssetsSystem.Load<AudioClip>(this.Path);
             }
 
             return rel;
@@ -60,7 +60,7 @@ namespace IG.Pool.SubPool{
                     var rel = ac as AudioClip;
                     param.OnCompleted.Invoke(rel);
                 };
-                AssetSystem.LoadAsync(callback, this.Path);
+                AssetsSystem.LoadAsync(callback, this.Path);
             }
 
             return true;

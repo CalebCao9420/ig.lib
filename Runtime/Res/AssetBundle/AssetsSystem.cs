@@ -20,7 +20,7 @@ namespace IG.AssetBundle{
     /// 1.Bundle做额外类型，内部有引用计数，方便计数<=0时卸载
     /// 2.有周期性检查，每个周期检测引用计数<=0的没卸载的包，手动卸载(周期考虑是外部来还是内部自动，主要为防止因为这里卸载影响Main的帧率等)
     /// </summary>
-    public sealed partial class AssetSystem : SingletonAbs<AssetSystem>{
+    public sealed partial class AssetsSystem : SingletonAbs<AssetsSystem>{
         /// <summary>
         /// Ab bundle manifest 资源名
         /// </summary>
@@ -269,7 +269,7 @@ namespace IG.AssetBundle{
 
                     //创建加载任务
                     request = UnityEngine.AssetBundle.LoadFromFileAsync(path);
-                    Instance._requestMap.Readd(bundleName, request);
+                    Instance._requestMap.ReAdd(bundleName, request);
                     yield return request;
 
                     //执行完毕回调

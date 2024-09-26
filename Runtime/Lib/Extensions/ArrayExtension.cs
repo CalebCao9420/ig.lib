@@ -1,5 +1,5 @@
 ﻿namespace IG.Runtime.Extensions{
-    public static class ArrayExtension{
+    public static class ArrayExtensions{
         /// <summary>
         /// 简单安全遍历
         /// </summary>

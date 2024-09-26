@@ -3,7 +3,7 @@ using System.Text;
 using IG.Runtime.Utils;
 
 namespace IG.Runtime.Extensions{
-    public static class StringExtension{
+    public static class StringExtensions{
         /// <summary>
         /// Rel length = return target length
         /// </summary>

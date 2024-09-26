@@ -20,7 +20,7 @@ namespace IG.Pool.SubPool{
 
         public GameObjectSubPool(PoolResourceType type, string path, Object original = null){
             this._Path = path;
-            AssetSystem.HookBundleAndAssetName(path, out string notDo, out this._Key);
+            AssetsSystem.HookBundleAndAssetName(path, out string notDo, out this._Key);
             this._PoolType = type;
             this._Original = original;
             this._Pool     = new List<Object>();
@@ -138,7 +138,7 @@ namespace IG.Pool.SubPool{
     #region Load fun
 
         private GameObject ReloadPrefab(string path){
-            GameObject rel = AssetSystem.Load(path, typeof(GameObject)) as GameObject;
+            GameObject rel = AssetsSystem.Load(path, typeof(GameObject)) as GameObject;
             return rel;
         }
 
@@ -148,7 +148,7 @@ namespace IG.Pool.SubPool{
                 rel = ac as GameObject;
                 onComplete?.Invoke(rel);
             };
-            AssetSystem.LoadAsync(callback, path);
+            AssetsSystem.LoadAsync(callback, path);
         }
 
     #endregion
