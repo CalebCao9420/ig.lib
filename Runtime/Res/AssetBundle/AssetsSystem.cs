@@ -153,7 +153,7 @@ namespace IG.AssetBundle{
                 return assetBundle;
             }
             else if (Instance._manifest != null){
-                List<string> dependencies = ListPool<string>.GetList();
+                List<string> dependencies = ListPool<string>.Get();
                 GetAllDependencies(bundleName, dependencies);
                 int    len  = dependencies?.Count ?? 0;
                 string path = null;
@@ -174,7 +174,7 @@ namespace IG.AssetBundle{
                     }
                 }
 
-                dependencies.Recycle();
+                dependencies.Return();
             }
 
             return assetBundle;
@@ -193,7 +193,7 @@ namespace IG.AssetBundle{
                 }
             }
             else{
-                List<string> dependenList = ListPool<string>.GetList();
+                List<string> dependenList = ListPool<string>.Get();
                 GetAllDependencies(bundleName, dependenList);
                 CheckCoroutineObj();
                 //游戏主控Mono 去开启这个携程
@@ -204,7 +204,7 @@ namespace IG.AssetBundle{
                                                                          try{
                                                                              Instance._assetBundleMap.TryGetValue(bundleName, out assetBundle);
                                                                              onLoadComplete.Invoke(assetBundle);
-                                                                             dependenList.Recycle();
+                                                                             dependenList.Return();
                                                                          }
                                                                          catch (Exception e){
                                                                              Debug.LogError("异步加载资源回调错误!" + bundleName + " " + e);

@@ -126,7 +126,7 @@ namespace IG.Runtime.Utils{
 
     #region Buffer
 
-        private static List<StringBuilder> _builderCache = ListPool<StringBuilder>.GetList();
+        private static List<StringBuilder> _builderCache = ListPool<StringBuilder>.Get();
 
         public static StringBuilder GetBuffer(){
             StringBuilder rel = null;
@@ -864,7 +864,7 @@ namespace IG.Runtime.Utils{
             string[]   rel       = new string[length];
             int        charCount = param.Length;
             int        setIndex  = 0;
-            List<char> charList  = ListPool<char>.GetList();
+            List<char> charList  = ListPool<char>.Get();
             for (int i = 0; i < charCount; ++i){
                 if (!param[i].Equals(format)){
                     charList.Add(param[i]);
@@ -881,7 +881,7 @@ namespace IG.Runtime.Utils{
                 }
             }
 
-            charList.Recycle();
+            charList.Return();
             return rel;
         }
 

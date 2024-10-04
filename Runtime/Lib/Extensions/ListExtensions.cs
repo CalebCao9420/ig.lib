@@ -16,13 +16,13 @@ namespace IG.Runtime.Extensions{
             return rel;
         }
 
-        public static void Recycle<T>(this List<T> list){
+        public static void Return<T>(this List<T> list){
             //TODO:清除与否需要测试
             if (list.Count > 0){
                 list.Clear();
             }
 
-            ListPool<T>.Recycle(list);
+            ListPool<T>.Return(list);
         }
 
         public static bool IsValidIndex<T>(this T[]     array, int idx){ return idx >= 0 && idx < array.Length; }
