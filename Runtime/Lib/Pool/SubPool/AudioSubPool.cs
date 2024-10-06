@@ -8,31 +8,44 @@ using Object = UnityEngine.Object;
 
 namespace IG.Pool.SubPool{
     public class AudioSubPool : ISubPool, IDisposable{
-        public    string           Name    { get{ return this._Key; } }
-        public    string           Path    { get{ return this._Path; } }
-        public    PoolResourceType PoolType{ get{ return this._PoolType; } }
-        protected PoolResourceType _PoolType;
-        protected string           _Key;
-        protected string           _Path; //类似于Bundle
-        protected List<AudioClip>  _Pool;
+        public    Type            SourceType{ get; } = typeof(AudioClip);
+        public    string          Name      { get{ return this._Key; } }
+        public    string          Path      { get{ return this._Path; } }
+        protected string          _Key;
+        protected string          _Path; //类似于Bundle
+        protected List<AudioClip> _Pool;
         protected AudioSubPool(){ }
 
-        public AudioSubPool(PoolResourceType type, string path){
+        /// <summary>
+        ///按Bundle注册子池 
+        /// </summary>
+        public AudioSubPool(string path){
             this._Path = path;
             AssetsSystem.HookBundleAndAssetName(path, out string notDo, out this._Key);
-            this._PoolType = type;
-            this._Pool     = new();
+            this._Pool = new();
             var origin = AssetsSystem.Load<AudioClip>(path);
             this._Pool.Add(origin);
         }
+        
+        /// <summary>
+        /// 按预置注册子池
+        /// </summary>
+        public AudioSubPool(Object prefab){
+            this._Pool = new();
+            var origin = prefab as AudioClip;
+            this._Pool.Add(origin);
+        }
 
-        public void Recycle(Object obj){
+        public void Return(Object obj){ this.Recycle(obj, false); }
+
+        public void Recycle(Object obj, bool createNewPool = false){
             if (obj is AudioClip audioClip){
                 this._Pool.Add(audioClip);
             }
         }
 
         public void Clear(bool cleanMemory = false){ }
+        public void Release()                      { throw new NotImplementedException(); }
 
         public Object Spawn(){
             AudioClip rel;

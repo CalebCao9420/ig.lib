@@ -1,29 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using IG.AssetBundle;
-using IG.Runtime.Extensions;
 using IG.Runtime.Utils;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace IG.Pool.SubPool{
     public class GameObjectSubPool : ISubPool, IDisposable{
-        public    string           Name    { get{ return this._Path; } }
-        public    string           Path    { get{ return this._Path; } }
-        public    PoolResourceType PoolType{ get{ return this._PoolType; } }
-        protected PoolResourceType _PoolType;
-        protected Object           _Original;
-        protected string           _Key;  //类似于Bundle
-        protected string           _Path; //类似于Bundle
-        protected List<Object>     _Pool;
+        public    Type            SourceType{ get; } = typeof(GameObject);
+        public    string          Name      { get{ return this._Path; } }
+        public    string          Path      { get{ return this._Path; } }
+        protected Object          _Original;
+        protected string          _Key;  //类似于Bundle
+        protected string          _Path; //类似于Bundle
+        protected Stack<Object>   _Pool;
+        protected HashSet<Object> _Using;
         protected GameObjectSubPool(){ }
 
-        public GameObjectSubPool(PoolResourceType type, string path, Object original = null){
+        /// <summary>
+        ///按Bundle注册子池 
+        /// </summary>
+        public GameObjectSubPool(string path, Object original = null){
             this._Path = path;
             AssetsSystem.HookBundleAndAssetName(path, out string notDo, out this._Key);
-            this._PoolType = type;
             this._Original = original;
-            this._Pool     = new List<Object>();
+            this._Pool     = new();
+            this._Using    = new();
+        }
+
+        /// <summary>
+        /// 按预置注册子池
+        /// </summary>
+        public GameObjectSubPool(Object original){
+            this._Original = original;
+            this._Path     = original.name;
+            this._Pool     = new();
+            this._Using    = new();
         }
 
         public UnityEngine.Object Spawn(){ return Spawn(null, true); }
@@ -31,52 +43,41 @@ namespace IG.Pool.SubPool{
         public Object Spawn(Transform parent = null, bool isActive = true){
             GameObject rel;
             if (_Pool.Count > 0){
-                rel = _Pool.First(true) as GameObject;
-                if (rel.activeSelf){
-                    this.Recycle(rel);
-                    return null;
-                }
-
+                rel = _Pool.Pop() as GameObject;
                 OnSpawnSuccess(rel, parent, isActive);
-                return rel;
             }
-
-            if (this._Original == null){
-                this._Original = this.ReloadPrefab(this.Path);
+            else{
                 if (this._Original == null){
-                    Debug.LogError($"ReloadPrefab错误请检查加载或者配置是否正确:cur= {this.Name} , input :{this.Name}");
-                    return null;
+                    this._Original = this.ReloadPrefab(this.Path);
                 }
+
+                rel      = UnityEngine.Object.Instantiate(this._Original) as GameObject;
+                rel.name = this.Name;
+                OnSpawnSuccess(rel, parent, isActive);
             }
 
-            rel      = UnityEngine.Object.Instantiate(this._Original) as GameObject;
-            rel.name = this.Name;
-            OnSpawnSuccess(rel, parent, isActive);
+            _Using.Add(rel);
             return rel;
         }
 
         public bool SpawnAsync(AsyncReqParam param){
-            PoolResourceType resourceType = param.SourceType;
-            string           name         = param.Name;
-            SubPoolEvent     onCompleted  = param.OnCompleted;
+            Type         resourceType = param.SourceType;
+            string       name         = param.Name;
+            SubPoolEvent onCompleted  = param.OnCompleted;
             //参数传递完就回收了
             AsyncReqParam.RecycleReq(param);
-            if (!name.Equals(this.Name) || resourceType != this._PoolType){
-                Debug.LogError($"错误的Prefab名 或者资源类型 : cur= {this.Name} , input :{name} , curType={this._PoolType} , inputType={resourceType}");
+            if (!name.Equals(this.Name) || resourceType != this.SourceType){
+                Debug.LogError($"错误的Prefab名 或者资源类型 : cur= {this.Name} , input :{name} , curType={this.SourceType} , inputType={resourceType}");
                 return false;
             }
 
             //开始加载
             GameObject rel = null;
             if (_Pool.Count > 0){
-                rel = _Pool.First(true) as GameObject;
-                if (rel.activeSelf){
-                    this.Recycle(rel);
-                    return false; //return false 则ObjectPool判断完，直接重新load即可
-                }
-
+                rel = _Pool.Pop() as GameObject;
                 OnSpawnSuccess(rel);
                 onCompleted?.Invoke(rel);
+                _Using.Add(rel);
                 return true;
             }
 
@@ -90,6 +91,7 @@ namespace IG.Pool.SubPool{
                 rel.name = name;
                 OnSpawnSuccess(rel);
                 onCompleted?.Invoke(rel);
+                _Using.Add(rel);
             };
             if (this._Original == null){
                 this.AsyncReloadPrefab(this.Path, onAsyncLoadSuccess);
@@ -101,22 +103,35 @@ namespace IG.Pool.SubPool{
             return true;
         }
 
-        public void Recycle(Object obj){
+        public void Return(Object obj){
             if (!Application.isPlaying || obj == null){
                 return;
+            }
+
+            if (false == _Using.Remove(obj)){
+                throw new ArgumentException($"[GameObjectSubPool] : Is not pool obj:{obj}");
             }
 
             GameObject gObj = obj as GameObject;
             StopEffect(gObj);
             CallOnOnUnSpawn(gObj);
             this.SetDefaultGameObjectAtr(gObj, null, false);
-            _Pool.Add(gObj);
+            _Pool.Push(gObj);
+        }
+
+        public void Release(){
+            foreach (var single in _Using){
+                GameObjUtils.DestroyObj(single as GameObject);
+            }
+
+            this._Using.Clear();
+            this.Clear(true);
         }
 
         public void Clear(bool cleanMemory = false){
             int len = _Pool.Count;
             for (int i = 0; i < len; ++i){
-                GameObject oc = _Pool[i] as GameObject;
+                GameObject oc = _Pool.Pop() as GameObject;
                 GameObjUtils.DestroyObj(oc);
             }
 
