@@ -151,6 +151,15 @@ namespace IG.Runtime.Utils{
                 GameObject.DestroyImmediate(obj.gameObject);
             }
         }
+        
+        public static void DestroyObj(UnityEngine.Object obj){
+            if (Application.isPlaying){
+                GameObject.Destroy(obj);
+            }
+            else{
+                GameObject.DestroyImmediate(obj);
+            }
+        }
 
         public enum Pivot{
             MidCenter,

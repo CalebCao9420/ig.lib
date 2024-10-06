@@ -121,7 +121,7 @@ namespace IG.Pool.SubPool{
 
         public void Release(){
             foreach (var single in _Using){
-                GameObjUtils.DestroyObj(single as GameObject);
+                GameObjUtils.DestroyObj(single);
             }
 
             this._Using.Clear();
@@ -141,12 +141,15 @@ namespace IG.Pool.SubPool{
             }
         }
 
-        public bool IsLock(){ return true; }
-
         public void Dispose(){
             if (this._Pool != null){
                 this._Pool.Clear();
                 this._Pool = null;
+            }
+            
+            if (_Using != null){
+                this._Using.Clear();
+                this._Using = null;
             }
         }
 
