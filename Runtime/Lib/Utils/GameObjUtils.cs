@@ -103,6 +103,33 @@ namespace IG.Runtime.Utils{
                 }
             }
         }
+        
+        
+        /// <summary>
+        /// 按名字查找子节点 
+        /// </summary>
+        public static Transform FindSubTransform(Transform tran, string transName){
+            if (string.IsNullOrEmpty(transName)){
+                return null;
+            }
+
+            if (tran.name == transName){
+                return tran;
+            }
+
+            Transform result = null;
+            bool OnChecked(Transform subTran){
+                result  = FindSubTransform(subTran, transName);
+                if (result != null){
+                    return result;
+                }
+                
+                return false;
+            }
+            
+            tran.Ergodic(OnChecked);
+            return result;
+        }
 
         public static void DestroyParent(this GameObject parent, bool detachChildren = false){
             if (detachChildren){
