@@ -25,5 +25,11 @@ namespace IG.Pool{
 
             return default;
         }
+        
+        public static void ReturnRoot(Type type, Transform root){
+            for (int i = root.childCount - 1; i >= 0; i--){
+                ObjectPool.Instance.Return(root.GetChild(i).gameObject);
+            }
+        }
     }
 }

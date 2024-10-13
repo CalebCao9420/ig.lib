@@ -90,13 +90,12 @@ namespace IG.Pool{
             subPool.SpawnAsync(param);
         }
 
-        public void Return(Type type, Transform root){
-            for (int i = root.childCount - 1; i >= 0; i--){
-                Return(type, root.GetChild(i).gameObject);
-            }
+        public void Return<T>(T obj) where T : UnityEngine.Object{
+            Type type = typeof(T);
+            this.Return(type,obj);
         }
 
-        public void Return(Type type, GameObject obj){
+        public void Return(Type type, Object obj){
             if (!Application.isPlaying || obj == null){
                 return;
             }
@@ -105,7 +104,9 @@ namespace IG.Pool{
             if (_pool.TryGetValue(type, out var pools)){
                 if (pools.TryGetValue(objName, out var subPool)){
                     subPool.Return(obj);
-                    obj.transform.SetParent(PoolRoot.transform);
+                    if (obj is GameObject gObj){
+                        gObj.transform.SetParent(PoolRoot.transform);
+                    }
                 }
             }
             else{
