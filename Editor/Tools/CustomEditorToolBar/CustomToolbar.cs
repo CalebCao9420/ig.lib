@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using IG.Editor.Helper;
+using IG.Runtime.Extensions;
 using IG.Runtime.Utils;
 
 namespace IG.Module.Editor{
@@ -55,11 +56,16 @@ namespace IG.Module.Editor{
         private static List<IToolbarFunction> InitFunctionArray(Type type){
             List<System.Type>      types = ADFUtils.GetImplementingTypes(type) as List<System.Type>;
             List<IToolbarFunction> array = new();
-            types.ForEach(
-                          t => {
-                              array.Add(Activator.CreateInstance(t) as IToolbarFunction);
-                          }
-                         );
+
+            int InternalSort(Type x, Type y){
+                var xPri = x.GetCustomAttribute<PriorityAttribute>();
+                var yPri = y.GetCustomAttribute<PriorityAttribute>();
+                return xPri.Priority - yPri.Priority;
+            }
+
+            types.Sort(InternalSort);
+            void OnCheck(Type t){ array.Add(Activator.CreateInstance(t) as IToolbarFunction); }
+            types.Ergodic(OnCheck);
             return array;
         }
 
