@@ -93,17 +93,16 @@ namespace IG.Module.Editor{
         }
 
         private static void ExecuteDrawFunction(IToolbarFunction function){
-            var before = function.GetType().GetCustomAttribute<BeforeActionAttribute>();
-            if (null != before){ before.Content?.Invoke(); }
-
+            function.BeforeDraw();
             function.DrawTool();
-            var after = function.GetType().GetCustomAttribute<AfterActionAttribute>();
-            if (null != after){ after.Content?.Invoke(); }
+            function.AfterDraw();
         }
     }
 
     public interface IToolbarFunction{
+        void BeforeDraw();
         void DrawTool();
+        void AfterDraw();
     }
 
     public interface IToolbarRightFunction : IToolbarFunction{
