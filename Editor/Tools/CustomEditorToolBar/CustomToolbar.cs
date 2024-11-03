@@ -31,17 +31,15 @@ namespace IG.Module.Editor{
                     VisualElement concreteRoot = root.GetValue(s_currentToolbar) as VisualElement;
                     //Right
                     VisualElement  toolbarRight   = concreteRoot.Q("ToolbarZoneRightAlign");
-                    VisualElement  parentRight    = new VisualElement(){ style ={ flexGrow = 1, flexDirection = FlexDirection.Row, } };
-                    IMGUIContainer containerRight = new IMGUIContainer();
-                    containerRight.onGUIHandler += OnGuiRightBody;
+                    VisualElement  parentRight    = new VisualElement(){ style ={ flexGrow = 1, flexDirection = FlexDirection.RowReverse, } };
+                    IMGUIContainer containerRight = new IMGUIContainer(OnGuiRightBody);
                     parentRight.Add(containerRight);
                     toolbarRight.Add(parentRight);
 
                     //Left
                     VisualElement  toolbarLeft   = concreteRoot.Q("ToolbarZoneLeftAlign");
-                    VisualElement  parentLeft    = new VisualElement(){ style ={ flexGrow = 1, flexDirection = FlexDirection.RowReverse, } };
-                    IMGUIContainer containerLeft = new IMGUIContainer();
-                    containerLeft.onGUIHandler += OnGuiLeftBody;
+                    VisualElement  parentLeft    = new VisualElement(){ style ={ flexGrow = 1, flexDirection = FlexDirection.Row, } };
+                    IMGUIContainer containerLeft = new IMGUIContainer(OnGuiLeftBody);
                     parentLeft.Add(containerLeft);
                     toolbarLeft.Add(parentLeft);
                 }
