@@ -78,7 +78,7 @@ namespace IG.Module.Editor{
             }
 
             foreach (var function in s_rightFunctions){
-                function.DrawTool();
+                ExecuteDrawFunction(function);
             }
         }
 
@@ -88,8 +88,17 @@ namespace IG.Module.Editor{
             }
 
             foreach (var function in s_leftFunctions){
-                function.DrawTool();
+                ExecuteDrawFunction(function);
             }
+        }
+
+        private static void ExecuteDrawFunction(IToolbarFunction function){
+            var before = function.GetType().GetCustomAttribute<BeforeActionAttribute>();
+            if (null != before){ before.Content?.Invoke(); }
+
+            function.DrawTool();
+            var after = function.GetType().GetCustomAttribute<AfterActionAttribute>();
+            if (null != after){ after.Content?.Invoke(); }
         }
     }
 
