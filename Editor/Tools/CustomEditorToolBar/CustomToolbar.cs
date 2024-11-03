@@ -77,9 +77,7 @@ namespace IG.Module.Editor{
                 return;
             }
 
-            foreach (var function in s_rightFunctions){
-                ExecuteDrawFunction(function);
-            }
+            s_rightFunctions.Ergodic(t => t.DrawTool());
         }
 
         private static void DrawGuiLeft(){
@@ -87,22 +85,12 @@ namespace IG.Module.Editor{
                 return;
             }
 
-            foreach (var function in s_leftFunctions){
-                ExecuteDrawFunction(function);
-            }
-        }
-
-        private static void ExecuteDrawFunction(IToolbarFunction function){
-            function.BeforeDraw();
-            function.DrawTool();
-            function.AfterDraw();
+            s_leftFunctions.Ergodic(t => t.DrawTool());
         }
     }
 
     public interface IToolbarFunction{
-        void BeforeDraw();
         void DrawTool();
-        void AfterDraw();
     }
 
     public interface IToolbarRightFunction : IToolbarFunction{
