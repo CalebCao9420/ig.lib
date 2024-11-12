@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -63,6 +64,58 @@ namespace IG.Editor.Helper{
                     var        single     = content[i];
                     GUIContent guiContent = new GUIContent($"{single}");
                     menu.AddItem(guiContent, check.Invoke(single), onSelect, single);
+                }
+
+                menu.ShowAsContext();
+            }
+        }
+
+        /// <summary>
+        /// Dropdown 菜单
+        /// </summary>
+        /// <param name="label"></param>
+        /// <param name="content"></param>
+        /// <param name="check"></param>
+        /// <param name="onSelect"></param>
+        /// <param name="style"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void DropdownMenu<T>(string label, IEnumerable<T> content, Func<T, bool> check, GenericMenu.MenuFunction2 onSelect, GUIStyle style){
+            if (GUILayout.Button(label, style)){
+                GenericMenu menu = new GenericMenu();
+                foreach (var t in content){
+                    var        single     = t;
+                    GUIContent guiContent = new GUIContent($"{single}");
+                    menu.AddItem(guiContent, check.Invoke(single), onSelect, single);
+                }
+
+                menu.ShowAsContext();
+            }
+        }
+
+        /// <summary>
+        /// Dropdown 菜单
+        /// </summary>
+        /// <param name="selectElement"></param>
+        /// <param name="content"></param>
+        /// <param name="onClick"></param>
+        /// <param name="width"></param>
+        /// <typeparam name="T"></typeparam>
+        public static void DropdownMenu<T>(T selectElement, IEnumerable<T> content, Action<T> onClick) where T : class{
+            bool       isOpenInList = null != selectElement;
+            string     openTypeName = isOpenInList ? selectElement.ToString() : string.Empty;
+            GUIContent menuGui      = new GUIContent(openTypeName);
+            if (GUILayout.Button(menuGui, EditorStyles.toolbarDropDown)){
+                var menu = new GenericMenu();
+                foreach (var t in content){
+                    var single = t;
+
+                    void OnItemClick(){
+                        onClick?.Invoke(single);
+                        selectElement = single;
+                    }
+
+                    GUIContent guiContent = new GUIContent($"{single}");
+                    menu.AddItem(guiContent, isOpenInList && selectElement == single, OnItemClick);
                 }
 
                 menu.ShowAsContext();
