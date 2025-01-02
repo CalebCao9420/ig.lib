@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using IG.Runtime.Extensions;
 
 namespace IG.Runtime.Utils{
     public static class ADFUtils{
@@ -75,6 +77,47 @@ namespace IG.Runtime.Utils{
             }
 
             return subTypeList;
+        }
+        
+        /// <summary>
+        /// 获取所有有T特性的类型
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static List<Type> GetAllTypes<T>() where T : System.Attribute{
+            var res = new List<Type>();
+            res = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttributes(typeof(T), false).Any()).ToList();
+            return res;
+        }
+
+        /// <summary>
+        /// 获取所有有T特性的方法
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static List<MethodInfo> GetAllMethod<T>() where T : System.Attribute{
+            var res = new List<MethodInfo>();
+
+            void OnCheck(Type t){
+                var methods = t.GetMethods();
+                var mts     = methods.Where(t => t.GetCustomAttributes(typeof(T)).Any());
+                res.AddRange(mts);
+            }
+
+            Assembly.GetExecutingAssembly().GetTypes().Ergodic(OnCheck);
+            return res;
+        }
+
+        /// <summary>
+        /// 获取属性
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static T GetAttribute<T>(Type model) where T : System.Attribute, new(){
+            var res = new T();
+            res = model.GetCustomAttribute<T>();
+            return res;
         }
 
     #region Sort custom attribute
