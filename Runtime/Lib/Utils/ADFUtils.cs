@@ -84,7 +84,7 @@ namespace IG.Runtime.Utils{
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static List<Type> GetAllTypes<T>() where T : System.Attribute{
+        public static List<Type> GetAllTypesByAttribute<T>() where T : System.Attribute{
             var res = new List<Type>();
             res = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttributes(typeof(T), false).Any()).ToList();
             return res;
@@ -92,19 +92,22 @@ namespace IG.Runtime.Utils{
 
         /// <summary>
         /// 获取所有有T特性的方法
+        /// 仅Static
+        /// 消耗较大,建议仅Editor使用
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static List<MethodInfo> GetAllMethod<T>() where T : System.Attribute{
+        public static List<MethodInfo> GetAllMethodByAttribute<T>() where T : System.Attribute{
             var res = new List<MethodInfo>();
 
             void OnCheck(Type t){
-                var methods = t.GetMethods();
+                var methods = t.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 var mts     = methods.Where(t => t.GetCustomAttributes(typeof(T)).Any());
                 res.AddRange(mts);
             }
 
-            Assembly.GetExecutingAssembly().GetTypes().Ergodic(OnCheck);
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            assemblies.Ergodic(t => t.GetTypes().Ergodic(OnCheck));
             return res;
         }
 
