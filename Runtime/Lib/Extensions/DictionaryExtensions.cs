@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace IG.Runtime.Utils{
@@ -120,6 +121,12 @@ namespace IG.Runtime.Utils{
             if (!dic.TryAdd(key, value)){
                 dic.Remove(key);
                 dic.Add(key, value);
+            }
+        }
+
+        public static void Ergodic<TK, TV>(this Dictionary<TK, TV> dic, Action<TK, TV> onCheck){
+            foreach (var pair in dic){
+                onCheck?.Invoke(pair.Key, pair.Value);
             }
         }
     }
