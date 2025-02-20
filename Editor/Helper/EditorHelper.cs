@@ -121,6 +121,39 @@ namespace IG.Editor.Helper{
                 menu.ShowAsContext();
             }
         }
+        
+        /// <summary>
+        /// Dropdown 菜单
+        /// </summary>
+        /// <param name="selectKey"></param>
+        /// <param name="dict"></param>
+        /// <param name="onClick"></param>
+        /// <param name="width"></param>
+        /// <param name="displayKey"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="V"></typeparam>
+        public static void DropDown<T, V>(T selectKey, Dictionary<T, V> dict, Action<KeyValuePair<T, V>> onClick, float width = 120, bool displayKey = false){
+            bool       isOpenInList = dict.TryGetValue(selectKey, out V value);
+            string     openTypeName = isOpenInList ? (displayKey ? selectKey.ToString() : value.ToString()) : string.Empty;
+            GUIContent guiContent   = new GUIContent(openTypeName);
+            if (GUILayout.Button(guiContent, EditorStyles.toolbarDropDown, GUILayout.Width(width))){
+                var menu = new GenericMenu();
+                foreach (var keyValuePair in dict){
+                    string keyStr = keyValuePair.Key.ToString();
+                    string valueStr = keyValuePair.Value.ToString();
+                    string curKeyStr = displayKey ? keyStr : valueStr;
+
+                    void OnItemClick(){
+                        onClick?.Invoke(keyValuePair);
+                        selectKey = keyValuePair.Key;
+                    }
+
+                    menu.AddItem(new GUIContent(curKeyStr), isOpenInList && selectKey.Equals(keyStr), OnItemClick);
+                }
+
+                menu.ShowAsContext();
+            }
+        }
 
         public static string HasTitleSelectFolderPathHorizontal(string title, string content, float width = 100.0f, float height = 100f){
             string rel = string.Empty;
