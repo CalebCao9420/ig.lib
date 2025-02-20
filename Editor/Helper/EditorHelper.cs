@@ -132,7 +132,7 @@ namespace IG.Editor.Helper{
         /// <param name="displayKey"></param>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="V"></typeparam>
-        public static void DropDown<T, V>(T selectKey, Dictionary<T, V> dict, Action<KeyValuePair<T, V>> onClick, float width = 120, bool displayKey = false){
+        public static void DropDown<T, V>(T selectKey,  IDictionary<T, V> dict, Action<KeyValuePair<T, V>> onClick, float width = 120, bool displayKey = false){
             bool       isOpenInList = dict.TryGetValue(selectKey, out V value);
             string     openTypeName = isOpenInList ? (displayKey ? selectKey.ToString() : value.ToString()) : string.Empty;
             GUIContent guiContent   = new GUIContent(openTypeName);
