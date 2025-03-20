@@ -145,6 +145,20 @@ namespace IG.Runtime.Extensions{
                 onCheck?.Invoke(i, single);
             }
         }
+        
+        /// <summary>
+        /// 简单遍历
+        /// 条件正确则break
+        /// </summary>
+        public static void Ergodic<T>(this List<T> list, Func<int, T, bool> onCheck){
+            int len = list?.Count ?? 0;
+            for (int i = 0; i < len; ++i){
+                T single = list[i];
+                if (onCheck.Invoke(i, single)){
+                    break;
+                }
+            }
+        }
 
         /// <summary>
         /// 简单遍历
