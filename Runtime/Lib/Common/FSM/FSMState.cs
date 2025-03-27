@@ -7,26 +7,22 @@ namespace IG.Runtime.Common.FSM{
     /// <typeparam name="TStatus">[State的状态类型]</typeparam>
     /// <typeparam name="TState">[State的类型]</typeparam>
     public abstract class FSMState<TStatus, TState> : IDisposable{
-    #region Param
-
-        protected float _duration;
-
-    #endregion
-
         public TStatus Status    { get; protected set; }
         public TState  State     { get; private set; }
+        
+        /// <summary>
+        /// Complete Condition
+        /// </summary>
         public bool    IsComplete{ get; protected set; }
         public FSMState(TState state){ this.State = state; }
 
         public bool Enter(IFSMStateParam param = null){
-            _duration = 0;
             return this.OnEnter(param);
         }
 
         public bool Leave(){ return this.OnLeave(); }
 
         public bool Tick(float deltaTime){
-            _duration += deltaTime;
             return this.OnTick(deltaTime);
         }
 
@@ -34,7 +30,6 @@ namespace IG.Runtime.Common.FSM{
 
         protected virtual bool OnEnter(IFSMStateParam param = null){
             IsComplete = false;
-            _duration  = 0;
             return true;
         }
 
