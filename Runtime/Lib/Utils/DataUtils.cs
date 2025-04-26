@@ -9,6 +9,9 @@ namespace IG.Runtime.Utils{
     /// 数据处理工具
     /// </summary>
     public static class DataUtils{
+        public const           string   SOLIT_SIGN     = ",";
+        public static readonly string[] S_ArraySpeSign ={ ",", "\"", "\\r", "\\n" };
+
     #region DataTable - CSV
 
         public static DataTable ConvertDataTable<K, V>(List<Dictionary<K, V>> data, string tableName = ""){
@@ -70,14 +73,12 @@ namespace IG.Runtime.Utils{
             return dt;
         }
 
-        public static void SaveDataTableToCSV(DataTable dt, string filePath){
+        public static void SaveDataTableToCSV(DataTable dt, string filePath, bool checkSpeSign = false){
             string dirPath = Path.GetDirectoryName(filePath);
             if (false == Directory.Exists(dirPath)){
                 Directory.CreateDirectory(dirPath);
             }
 
-            const string splitSign = ",";
-            //
             using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write)){
                 using (StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8)){
                     StringBuilder sb = new StringBuilder();
@@ -86,7 +87,7 @@ namespace IG.Runtime.Utils{
                     for (int i = 0; i < len; ++i){
                         sb.Append(dt.Columns[i].ColumnName.ToString());
                         if (i < len - 1){
-                            sb.Append(splitSign);
+                            sb.Append(SOLIT_SIGN);
                         }
                     }
 
@@ -98,9 +99,13 @@ namespace IG.Runtime.Utils{
                         int columnsLen = dt.Columns?.Count ?? 0;
                         for (int j = 0; j < columnsLen; ++j){
                             string str = dt.Rows[i][j].ToString();
+                            if (checkSpeSign){
+                                str = QuoteValue(str);
+                            }
+
                             sb.Append(str);
                             if (j < columnsLen - 1){
-                                sb.Append(splitSign);
+                                sb.Append(SOLIT_SIGN);
                             }
                         }
 
@@ -112,6 +117,31 @@ namespace IG.Runtime.Utils{
                 }
             }
         }
+
+    #region Private functions
+
+        private static string QuoteValue(string value){
+            bool isChecked = false;
+
+            bool OnCheck(string sign){
+                if (value.Contains(sign)){
+                    isChecked = true;
+                    return true;
+                }
+
+                return false;
+            }
+
+            S_ArraySpeSign.Ergodic(OnCheck);
+            if (isChecked){
+                // 使用双引号包裹值，并在内部将双引号替换为两个双引号来避免CSV解析错误。
+                return $"\"{value.Replace("\"", "\"\"")}\"";
+            }
+
+            return value;
+        }
+
+    #endregion
 
     #endregion
     }
