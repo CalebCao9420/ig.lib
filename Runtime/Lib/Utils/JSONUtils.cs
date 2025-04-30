@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
-using Formatting = Newtonsoft.Json.Formatting;
 
 namespace IG.Runtime.Utils{
     public class JSONUtils{
@@ -12,9 +11,12 @@ namespace IG.Runtime.Utils{
         /// <param name="jsonContent">json字符串</param>
         /// <returns></returns>
         public static T JsonToObject<T>(string jsonContent){
-            //TODO: 目前只需要这两种情况，因为json格式的问题，后边有情况再多加判断
-            T obj = default;
-            obj = JsonConvert.DeserializeObject<T>(jsonContent);
+            if (string.IsNullOrEmpty(jsonContent)){
+                Debug.LogError("Deserialize string can not be empty!!");
+                return default(T);
+            }
+
+            T obj = JsonConvert.DeserializeObject<T>(jsonContent);
             if (obj != null){
                 return obj;
             }
@@ -23,13 +25,26 @@ namespace IG.Runtime.Utils{
             return default(T);
         }
 
-        public static List<T> JsonToListObj<T>(string jsonContent){
-            List<T> obj = JsonConvert.DeserializeObject<List<T>>(jsonContent);
+        /// <summary>
+        /// json字符串转对象
+        /// </summary>
+        /// <typeparam name="T">对象类型</typeparam>
+        /// <param name="jsonContent">json字符串</param>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        public static T JsonToObject<T>(string jsonContent, JsonSerializerSettings settings){
+            if (string.IsNullOrEmpty(jsonContent)){
+                Debug.LogError("Deserialize string can not be empty!!");
+                return default(T);
+            }
+
+            T obj = JsonConvert.DeserializeObject<T>(jsonContent, settings);
             if (obj != null){
                 return obj;
             }
 
-            return default(List<T>);
+            Debug.LogError("Data can not blank in JSONUtils");
+            return default(T);
         }
 
         /// <summary>
@@ -39,31 +54,49 @@ namespace IG.Runtime.Utils{
         /// <param name="obj"></param>
         /// <returns></returns>
         public static string ObjectToJson<T>(T obj){
+            if (null == obj){
+                Debug.LogError("SerializedObject can not be null!!");
+                return string.Empty;
+            }
+
             string result = JsonConvert.SerializeObject(obj);
             return result;
         }
 
-        public static string ObjectToJson<T>(T obj, bool format){
-            string result =
-                format ? JsonConvert.SerializeObject(obj, Formatting.Indented) : JsonConvert.SerializeObject(obj);
+        /// <summary>
+        /// 对象转json字符串
+        /// 带格式
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="format"></param>
+        /// <returns></returns>
+        public static string ObjectToJson<T>(T obj, Formatting format){
+            if (null == obj){
+                Debug.LogError("SerializedObject can not be null!!");
+                return string.Empty;
+            }
+
+            string result = JsonConvert.SerializeObject(obj, format);
             return result;
         }
 
-        public static string ObjectToJson<T>(T obj, bool format, bool ignore = false){
-            if (ignore){
-                var json = JsonConvert.SerializeObject(
-                                                       obj,
-                                                       new JsonSerializerSettings{
-                                                                                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore, //忽略实体中实体，不再序列化里面包含的实体
-                                                                                     Formatting            = Formatting.Indented
-                                                                                 }
-                                                      );
-                return json;
+        /// <summary>
+        /// 对象转json字符串
+        /// 使用NewtonSoft 序列化Setting
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        public static string ObjectToJson<T>(T obj, JsonSerializerSettings settings){
+            if (null == obj){
+                Debug.LogError("SerializedObject can not be null!!");
+                return string.Empty;
             }
 
-            string result =
-                format ? JsonConvert.SerializeObject(obj, Formatting.Indented) : JsonConvert.SerializeObject(obj);
-            return result;
+            var json = JsonConvert.SerializeObject(obj, settings);
+            return json;
         }
     }
 }
