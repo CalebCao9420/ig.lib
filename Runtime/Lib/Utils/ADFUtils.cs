@@ -78,7 +78,7 @@ namespace IG.Runtime.Utils{
 
             return subTypeList;
         }
-        
+
         /// <summary>
         /// 获取所有有T特性的类型
         /// </summary>
@@ -112,15 +112,71 @@ namespace IG.Runtime.Utils{
         }
 
         /// <summary>
-        /// 获取属性
+        /// 通过限定类型Attribute获取改类带有TM Attribute的方法,已经该方法的Attribute
+        /// </summary>
+        /// <typeparam name="TC"></typeparam>
+        /// <typeparam name="TM"></typeparam>
+        /// <returns></returns>
+        public static List<(MethodInfo, TM)> GetAllMethodByAttribute<TC, TM>() where TC : System.Attribute, new() where TM : System.Attribute, new(){
+            var rel = new List<(MethodInfo, TM)>();
+            // 获取所有程序集
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies){
+                // 获取程序集中的所有类型
+                Type[] types = assembly.GetTypes();
+                foreach (Type type in types){
+                    if (type.IsInterface || type.IsAbstract){ continue; }
+
+                    var attributes = GetAttribute<TC>(type, false);
+                    if (attributes == null){
+                        continue;
+                    }
+
+                    MethodInfo[] methods = type.GetMethods();
+                    foreach (var sm in methods){
+                        var afs = GetAttribute<TM>(sm, false);
+                        if (afs == null){
+                            continue;
+                        }
+
+                        rel.Add((sm, afs));
+                    }
+                }
+            }
+
+            return rel;
+        }
+
+        /// <summary>
+        /// 获取属性，通过方法限定
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="model"></param>
+        /// <param name="method"></param>
+        /// <param name="inherit"></param>
         /// <returns></returns>
-        public static T GetAttribute<T>(Type model) where T : System.Attribute, new(){
-            var res = new T();
-            res = model.GetCustomAttribute<T>();
-            return res;
+        public static T GetAttribute<T>(MethodInfo method, bool inherit = false){
+            var attributeType = typeof(T);
+            var afs           = method.GetCustomAttributes(attributeType, inherit);
+            var att           = afs?.Length > 0 ? afs[0] : null;
+            if (att == null){ return default; }
+
+            return (T)att;
+        }
+
+        /// <summary>
+        /// 获取属性，通过类型限定
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="inherit"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T GetAttribute<T>(Type type, bool inherit = false){
+            var attributeType = typeof(T);
+            var afs           = type.GetCustomAttributes(attributeType, inherit);
+            var att           = afs?.Length > 0 ? afs[0] : null;
+            if (att == null){ return default; }
+
+            return (T)att;
         }
 
     #region Sort custom attribute
@@ -131,8 +187,7 @@ namespace IG.Runtime.Utils{
         }
 
         public static void SortByPriority(List<Type> classes, SortType sortType = SortType.Order){
-            classes.Sort(
-                         (x, y) => {
+            classes.Sort((x, y) => {
                              var xPri = x.GetCustomAttribute(typeof(PriorityAttribute)) as PriorityAttribute;
                              var yPri = y.GetCustomAttribute(typeof(PriorityAttribute)) as PriorityAttribute;
                              if (xPri == null){
