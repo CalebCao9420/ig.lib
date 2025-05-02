@@ -148,6 +148,43 @@ namespace IG.Runtime.Utils{
         }
 
         /// <summary>
+        /// 通过限定类型Attribute获取改类带有TM Attribute的方法,已经该方法的Attribute
+        /// </summary>
+        /// <typeparam name="TC"></typeparam>
+        /// <typeparam name="TM"></typeparam>
+        /// <returns></returns>
+        public static List<(MethodInfo, TM)> GetAllMethodByAttribute<TC, TM>(BindingFlags functionFlags)
+            where TC : System.Attribute where TM : System.Attribute{
+            var rel = new List<(MethodInfo, TM)>();
+            // 获取所有程序集
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies){
+                // 获取程序集中的所有类型
+                Type[] types = assembly.GetTypes();
+                foreach (Type type in types){
+                    if (type.IsInterface || type.IsAbstract){ continue; }
+
+                    var attributes = GetAttribute<TC>(type, false);
+                    if (attributes == null){
+                        continue;
+                    }
+
+                    MethodInfo[] methods = type.GetMethods(functionFlags);
+                    foreach (var sm in methods){
+                        var afs = GetAttribute<TM>(sm, false);
+                        if (afs == null){
+                            continue;
+                        }
+
+                        rel.Add((sm, afs));
+                    }
+                }
+            }
+
+            return rel;
+        }
+
+        /// <summary>
         /// 获取属性，通过方法限定
         /// </summary>
         /// <typeparam name="T"></typeparam>
