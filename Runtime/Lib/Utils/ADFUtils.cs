@@ -117,7 +117,7 @@ namespace IG.Runtime.Utils{
         /// <typeparam name="TC"></typeparam>
         /// <typeparam name="TM"></typeparam>
         /// <returns></returns>
-        public static List<(MethodInfo, TM)> GetAllMethodByAttribute<TC, TM>() where TC : System.Attribute, new() where TM : System.Attribute, new(){
+        public static List<(MethodInfo, TM)> GetAllMethodByAttribute<TC, TM>() where TC : System.Attribute where TM : System.Attribute{
             var rel = new List<(MethodInfo, TM)>();
             // 获取所有程序集
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
