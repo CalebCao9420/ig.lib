@@ -179,7 +179,7 @@ namespace IG.Pool.SubPool{
         }
 
         private void SetDefaultGameObjectAtr(GameObject obj, Transform parent = null, bool active = true){
-            obj.transform.SetParent(parent == null ? ObjectPool.Instance.transform : parent);
+            obj.transform.SetParent(parent == null ? UnityObjectPool.Instance.transform : parent);
             obj.transform.localPosition = Vector3.zero;
             obj.transform.localRotation = Quaternion.identity;
             obj.SetActive(active);

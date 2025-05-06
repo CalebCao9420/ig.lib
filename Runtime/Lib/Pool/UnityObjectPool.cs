@@ -7,7 +7,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace IG.Pool{
-    public class ObjectPool : SingletonMono<ObjectPool>{
+    public class UnityObjectPool : SingletonMono<UnityObjectPool>{
         public override void OnDispose(){ }
 
         public static GameObject PoolRoot{ get; private set; }
